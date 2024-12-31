@@ -1,5 +1,5 @@
 
-# Product Requirements Document (PRD) for Habit Tracking App with Community Features
+# Product Requirements Document (PRD) for Habit Tracking App, called "Habit Spark" with Community Features
 
 ## 1. Introduction
 
