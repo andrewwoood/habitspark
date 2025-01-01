@@ -1,0 +1,38 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "jsx": "react-native",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "target": "esnext",
+    "module": "commonjs",
+    "paths": {
+      "*": ["*", "habit-spark/*"],
+      "@types/*": ["habit-spark/types/*"],
+      "@components/*": ["habit-spark/components/*"],
+      "@screens/*": ["habit-spark/screens/*"],
+      "@store/*": ["habit-spark/store/*"],
+      "@utils/*": ["habit-spark/utils/*"],
+      "@config/*": ["habit-spark/config/*"],
+      "@api/*": ["api/*"]
+    },
+    "lib": ["es2017"],
+    "noEmit": true,
+    "isolatedModules": true,
+    "allowSyntheticDefaultImports": true,
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "types": ["react-native", "@types/jest"]
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+} 

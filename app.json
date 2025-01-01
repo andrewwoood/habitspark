@@ -26,6 +26,7 @@
         "backgroundColor": "#FFFFFF"
       },
       "package": "com.habitspark.app"
-    }
+    },
+    "scheme": "habit-spark"
   }
 } 
