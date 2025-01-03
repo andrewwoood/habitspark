@@ -1,4 +1,6 @@
 import * as React from 'react'
+import 'react-native-reanimated';
+import 'react-native-gesture-handler';
 import { AuthProvider } from './habit-spark/contexts/AuthProvider'
 import { Navigation } from './habit-spark/navigation/Navigation'
 import { PaperProvider } from 'react-native-paper'

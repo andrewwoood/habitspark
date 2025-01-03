@@ -27,6 +27,7 @@
       },
       "package": "com.habitspark.app"
     },
-    "scheme": "habit-spark"
+    "scheme": "habit-spark",
+    "sdkVersion": "48.0.0"
   }
 } 

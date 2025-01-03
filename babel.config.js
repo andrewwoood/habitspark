@@ -9,7 +9,6 @@ module.exports = function (api) {
     plugins: [
       'babel-plugin-transform-typescript-metadata',
       '@babel/plugin-transform-react-jsx',
-      require.resolve('react-native-reanimated/plugin'),
       ["module:react-native-dotenv", {
         "moduleName": "@env",
         "path": ".env",
@@ -42,7 +41,8 @@ module.exports = function (api) {
             '@api': './api/*'
           }
         }
-      ]
+      ],
+      'react-native-reanimated/plugin'
     ]
   }
 } 
