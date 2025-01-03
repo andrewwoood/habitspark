@@ -1,8 +1,10 @@
 import { create } from 'zustand'
 import { supabase } from '../api/supabaseClient'
 import Toast from 'react-native-toast-message'
+import React from 'react'
 import { getUnlockedAchievements } from '../utils/achievements'
 import { AchievementToast } from '../components/AchievementToast'
+import type { ReactNode } from 'react'
 
 export interface Habit {
   id: string
@@ -93,7 +95,7 @@ export const useHabitStore = create<HabitState>((set, get) => ({
       
       if (newAchievements.length > prevAchievements.length) {
         const latestAchievement = newAchievements[newAchievements.length - 1]
-        Toast.show({
+        const toastConfig = {
           type: 'success',
           props: {
             achievement: latestAchievement
@@ -101,8 +103,11 @@ export const useHabitStore = create<HabitState>((set, get) => ({
           position: 'top',
           visibilityTime: 4000,
           autoHide: true,
-          customComponent: <AchievementToast achievement={latestAchievement} />
-        })
+          customComponent: () => React.createElement(AchievementToast, { 
+            achievement: latestAchievement 
+          })
+        }
+        Toast.show(toastConfig)
       }
       
       set({ previousStreak: get().currentStreak })

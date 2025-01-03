@@ -2,7 +2,7 @@ import * as React from 'react'
 import { useState } from 'react'
 import { View, StyleSheet } from 'react-native'
 import { TextInput, Button, Text } from 'react-native-paper'
-import { useHabitStore } from '../store/habitStore'
+import { useHabitStore } from '../store/habitStore.tsx'
 import type { NavigationProps } from '../types/navigation'
 
 export const CreateHabitScreen = ({ navigation }: NavigationProps) => {
