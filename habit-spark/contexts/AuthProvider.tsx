@@ -1,4 +1,4 @@
-import * as React from 'react'
+import React, { useEffect } from 'react'
 import { supabase } from '../api/supabaseClient'
 import { useAuthStore } from '../store/authStore'
 import { View, ActivityIndicator } from 'react-native'

@@ -1,16 +1,24 @@
-import 'react-native-url-polyfill/auto'
+import { Platform } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { createClient } from '@supabase/supabase-js'
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@env'
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+const supabaseUrl = SUPABASE_URL
+const supabaseAnonKey = SUPABASE_ANON_KEY
+
+const supabaseConfig = {
   auth: {
     storage: AsyncStorage,
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false,
+    detectSessionInUrl: Platform.OS === 'web',
+  },
+  global: {
+    fetch: fetch.bind(globalThis)
   }
-})
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, supabaseConfig)
 
 // Add storage helper functions
 export const uploadAvatar = async (filePath: string, file: Blob) => {
