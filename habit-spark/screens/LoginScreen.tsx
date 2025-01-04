@@ -5,18 +5,41 @@ import { TextInput, Button, Text } from 'react-native-paper'
 import { useAuthStore } from '../store/authStore'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import type { NavigationProps } from '../types/navigation'
+import * as Google from 'expo-auth-session/providers/google'
+import { googleOAuthConfig } from '../config/oauth'
+import { supabase } from '../api/supabaseClient'
 
 export const LoginScreen = ({ navigation }: NavigationProps) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const { signIn, signInWithGoogle } = useAuthStore()
+  const { signIn, signInWithToken } = useAuthStore()
+  
+  const [request, response, promptAsync] = Google.useAuthRequest(googleOAuthConfig)
 
   const handleLogin = async () => {
     try {
       setLoading(true)
       await signIn(email, password)
     } catch (error) {
+      alert(error.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setLoading(true)
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+          skipBrowserRedirect: false
+        }
+      });
+      if (error) throw error;
+    } catch (error: any) {
       alert(error.message)
     } finally {
       setLoading(false)
@@ -50,7 +73,8 @@ export const LoginScreen = ({ navigation }: NavigationProps) => {
       </Button>
       <Button 
         mode="outlined"
-        onPress={signInWithGoogle}
+        onPress={handleGoogleSignIn}
+        disabled={!request || loading}
         style={styles.googleButton}
         icon={({ size, color }) => (
           <MaterialCommunityIcons name="google" size={size} color={color} />

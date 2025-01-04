@@ -4,10 +4,16 @@ import 'react-native-gesture-handler'
 import React from 'react'
 import { AuthProvider } from './habit-spark/contexts/AuthProvider'
 import { Navigation } from './habit-spark/navigation/Navigation'
-import { PaperProvider } from 'react-native-paper'
+import { PaperProvider, adaptNavigationTheme } from 'react-native-paper'
+import { NavigationContainer, DefaultTheme as NavigationDefaultTheme } from '@react-navigation/native'
 import { StatusBar } from 'expo-status-bar'
 import Toast from 'react-native-toast-message'
 import { View, Text, Platform } from 'react-native'
+import { theme } from './habit-spark/theme'
+
+const { LightTheme } = adaptNavigationTheme({
+  reactNavigationLight: NavigationDefaultTheme,
+})
 
 class ErrorBoundary extends React.Component {
   state = { hasError: false, error: null };
@@ -32,9 +38,11 @@ class ErrorBoundary extends React.Component {
 export default function App() {
   return (
     <ErrorBoundary>
-      <PaperProvider>
+      <PaperProvider theme={theme}>
         <AuthProvider>
-          <Navigation />
+          <NavigationContainer theme={LightTheme}>
+            <Navigation />
+          </NavigationContainer>
           <StatusBar style="auto" />
           <Toast config={{
             success: (props) => <>{props.customComponent}</>

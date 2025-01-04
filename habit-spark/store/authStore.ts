@@ -1,8 +1,6 @@
 import { create } from 'zustand'
-import * as Google from 'expo-auth-session'
 import { supabase } from '../api/supabaseClient'
 import { User, Session } from '@supabase/supabase-js'
-import { googleOAuthConfig } from '../config/oauth'
 import { Platform } from 'react-native'
 
 interface AuthState {
@@ -15,7 +13,6 @@ interface AuthState {
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
-  signInWithGoogle: () => Promise<void>
   updateAvatar: (url: string) => Promise<void>
 }
 
@@ -44,28 +41,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   signOut: async () => {
     await supabase.auth.signOut()
     set({ user: null, session: null })
-  },
-  signInWithGoogle: async () => {
-    try {
-      set({ loading: true, error: null })
-      
-      const request = await Google.AuthRequest.createAsync(googleOAuthConfig)
-      const { type, params } = await request.promptAsync()
-      
-      if (type === 'success' && params.access_token) {
-        const { data, error } = await supabase.auth.signInWithIdToken({
-          provider: 'google',
-          token: params.access_token,
-        })
-        
-        if (error) throw error
-        set({ user: data.user, session: data.session })
-      }
-    } catch (error: any) {
-      set({ error: error.message })
-    } finally {
-      set({ loading: false })
-    }
   },
   fetchAvatar: async () => {
     try {
