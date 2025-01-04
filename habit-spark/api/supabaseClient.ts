@@ -1,24 +1,47 @@
-import { Platform } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { createClient } from '@supabase/supabase-js'
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@env'
+import { Platform } from 'react-native'
+import { supabaseConfig } from '../config/oauth'
 
-const supabaseUrl = SUPABASE_URL
-const supabaseAnonKey = SUPABASE_ANON_KEY
-
-const supabaseConfig = {
-  auth: {
-    storage: AsyncStorage,
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: Platform.OS === 'web',
-  },
-  global: {
-    fetch: fetch.bind(globalThis)
+export const supabase = createClient(
+  supabaseConfig.supabaseUrl,
+  supabaseConfig.supabaseAnonKey,
+  {
+    auth: {
+      storage: AsyncStorage,
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: Platform.OS === 'web'
+    }
   }
+)
+
+// Debug helper
+export const checkAuth = async () => {
+  const session = await supabase.auth.getSession()
+  console.log('Current Session:', session)
+  
+  const { data: { user }, error } = await supabase.auth.getUser()
+  console.log('Current User:', user)
+  console.log('Auth Error:', error)
+  
+  return { session, user, error }
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, supabaseConfig)
+// Add helper to verify auth state
+export const verifyAuth = async () => {
+  const { data: { session }, error } = await supabase.auth.getSession()
+  if (error || !session) {
+    throw new Error('Not authenticated')
+  }
+  return session
+}
+
+// Use this wrapper for authenticated requests
+export const withAuth = async (operation: () => Promise<any>) => {
+  await verifyAuth()
+  return operation()
+}
 
 // Add storage helper functions
 export const uploadAvatar = async (filePath: string, file: Blob) => {

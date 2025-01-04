@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useEffect } from 'react'
+import { useEffect, useCallback } from 'react'
 import { View, StyleSheet, ScrollView } from 'react-native'
 import { Text, List, FAB, ActivityIndicator } from 'react-native-paper'
 import { useHabitStore } from '../store/habitStore.tsx'
@@ -10,15 +10,19 @@ import { calculateStatistics } from '../utils/statisticsCalculator'
 import type { NavigationProps } from '../types/navigation'
 import { StreakMilestone } from '../components/StreakMilestone'
 import { StatisticsView } from '../components/StatisticsView'
+import { useFocusEffect } from '@react-navigation/native'
 
 export const HomeScreen = ({ navigation }: NavigationProps) => {
   const { habits, loading, error, fetchHabits, toggleHabit, updateBestStreak } = useHabitStore()
   const [showMilestone, setShowMilestone] = React.useState(false)
   const lastStreak = React.useRef(0)
 
-  useEffect(() => {
-    fetchHabits()
-  }, [])
+  // Fetch habits when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchHabits()
+    }, [])
+  )
 
   const today = new Date().toISOString().split('T')[0]
   
@@ -46,6 +50,20 @@ export const HomeScreen = ({ navigation }: NavigationProps) => {
 
   const statistics = React.useMemo(() => 
     calculateStatistics(uniqueCompletedDates), [uniqueCompletedDates])
+
+  const handleAddHabit = async () => {
+    try {
+      const newHabit = {
+        name: 'Test Habit',
+        frequency: 'daily',
+        description: 'Test description'
+      }
+      console.log('Debug - Adding habit with data:', newHabit)
+      await addHabit(newHabit)
+    } catch (error) {
+      console.error('Error adding habit:', error)
+    }
+  }
 
   if (loading && !habits.length) {
     return (

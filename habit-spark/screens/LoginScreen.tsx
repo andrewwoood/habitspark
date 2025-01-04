@@ -8,6 +8,7 @@ import type { NavigationProps } from '../types/navigation'
 import * as Google from 'expo-auth-session/providers/google'
 import { googleOAuthConfig } from '../config/oauth'
 import { supabase } from '../api/supabaseClient'
+import { checkAuth } from '../api/supabaseClient'
 
 export const LoginScreen = ({ navigation }: NavigationProps) => {
   const [email, setEmail] = useState('')
@@ -21,7 +22,13 @@ export const LoginScreen = ({ navigation }: NavigationProps) => {
     try {
       setLoading(true)
       await signIn(email, password)
+      
+      // Verify auth state
+      const authState = await checkAuth()
+      console.log('Auth State after login:', authState)
+      
     } catch (error) {
+      console.error('Login error:', error)
       alert(error.message)
     } finally {
       setLoading(false)
@@ -44,6 +51,52 @@ export const LoginScreen = ({ navigation }: NavigationProps) => {
     } finally {
       setLoading(false)
     }
+  }
+
+  const fetchHabits = async () => {
+    const { data: session } = await supabase.auth.getSession()
+    
+    if (!session) {
+      console.error('No session found')
+      return
+    }
+
+    const { data, error } = await supabase
+      .from('habits')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching habits:', error)
+      return
+    }
+
+    return data
+  }
+
+  const addHabit = async (habitData) => {
+    const { data: session } = await supabase.auth.getSession()
+    
+    if (!session) {
+      console.error('No session found')
+      return
+    }
+
+    const { data, error } = await supabase
+      .from('habits')
+      .insert([
+        {
+          ...habitData,
+          user_id: session.user.id
+        }
+      ])
+
+    if (error) {
+      console.error('Error adding habit:', error)
+      return
+    }
+
+    return data
   }
 
   return (

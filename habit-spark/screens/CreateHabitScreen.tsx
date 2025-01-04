@@ -2,21 +2,28 @@ import * as React from 'react'
 import { useState } from 'react'
 import { View, StyleSheet } from 'react-native'
 import { TextInput, Button, Text } from 'react-native-paper'
-import { useHabitStore } from '../store/habitStore.tsx'
+import { useHabitsStore } from '../store/habitsStore'
 import type { NavigationProps } from '../types/navigation'
 
 export const CreateHabitScreen = ({ navigation }: NavigationProps) => {
   const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [frequency, setFrequency] = useState('daily')
   const [loading, setLoading] = useState(false)
-  const createHabit = useHabitStore(state => state.createHabit)
+  const { addHabit, fetchHabits } = useHabitsStore()
 
-  const handleCreate = async () => {
-    if (!name.trim()) return
+  const handleCreateHabit = async () => {
     try {
       setLoading(true)
-      await createHabit(name.trim())
+      await addHabit({
+        name,
+        description,
+        frequency,
+      })
+      await fetchHabits()
       navigation.goBack()
     } catch (error: any) {
+      console.error('Create habit error:', error)
       alert(error.message)
     } finally {
       setLoading(false)
@@ -25,18 +32,24 @@ export const CreateHabitScreen = ({ navigation }: NavigationProps) => {
 
   return (
     <View style={styles.container}>
-      <Text variant="headlineSmall" style={styles.header}>Create New Habit</Text>
+      <Text variant="headlineSmall">Create New Habit</Text>
       <TextInput
         label="Habit Name"
         value={name}
         onChangeText={setName}
         style={styles.input}
       />
-      <Button
+      <TextInput
+        label="Description (optional)"
+        value={description}
+        onChangeText={setDescription}
+        style={styles.input}
+      />
+      <Button 
         mode="contained"
-        onPress={handleCreate}
+        onPress={handleCreateHabit}
         loading={loading}
-        disabled={!name.trim()}
+        disabled={!name || !frequency}
         style={styles.button}
       >
         Create Habit
@@ -48,15 +61,12 @@ export const CreateHabitScreen = ({ navigation }: NavigationProps) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-  },
-  header: {
-    marginBottom: 24,
+    padding: 20,
   },
   input: {
-    marginBottom: 16,
+    marginVertical: 8,
   },
   button: {
-    marginTop: 8,
+    marginTop: 16,
   },
 }) 

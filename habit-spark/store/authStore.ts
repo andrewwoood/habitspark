@@ -1,7 +1,19 @@
 import { create } from 'zustand'
-import { supabase } from '../api/supabaseClient'
+import { createClient } from '@supabase/supabase-js'
+import { supabaseConfig } from '../config/oauth'
 import { User, Session } from '@supabase/supabase-js'
 import { Platform } from 'react-native'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+
+const supabase = createClient(
+  supabaseConfig.supabaseUrl,
+  supabaseConfig.supabaseAnonKey,
+  {
+    auth: {
+      persistSession: true,
+    }
+  }
+)
 
 interface AuthState {
   user: User | null
@@ -9,6 +21,7 @@ interface AuthState {
   loading: boolean
   avatarUrl: string | null
   error: string | null
+  setUser: (user: User) => void
   fetchAvatar: () => Promise<void>
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string) => Promise<void>
@@ -22,13 +35,24 @@ export const useAuthStore = create<AuthState>((set) => ({
   loading: false,
   avatarUrl: null,
   error: null,
+  setUser: (user) => set({ user }),
   signIn: async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    if (error) throw error
-    set({ user: data.user, session: data.session })
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      if (error) throw error
+      
+      // Store session in AsyncStorage
+      await AsyncStorage.setItem('supabase-auth', JSON.stringify(data.session))
+      console.log('Stored session:', data.session)
+      
+      set({ user: data.user, session: data.session })
+    } catch (error) {
+      console.error('Sign in error:', error)
+      throw error
+    }
   },
   signUp: async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signUp({
