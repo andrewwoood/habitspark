@@ -4,6 +4,7 @@ import { supabaseConfig } from '../config/oauth'
 import { User, Session } from '@supabase/supabase-js'
 import { Platform } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { useHabitStore } from './habitStore'
 
 const supabase = createClient(
   supabaseConfig.supabaseUrl,
@@ -27,6 +28,7 @@ interface AuthState {
   signUp: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
   updateAvatar: (url: string) => Promise<void>
+  logout: () => Promise<void>
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -90,6 +92,15 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ user, avatarUrl: url })
     } catch (error: any) {
       set({ error: error.message })
+    }
+  },
+  logout: async () => {
+    try {
+      await supabase.auth.signOut()
+      useHabitStore.getState().clearStore()
+      set({ user: null, session: null })
+    } catch (error) {
+      console.error('Error logging out:', error)
     }
   },
 })) 

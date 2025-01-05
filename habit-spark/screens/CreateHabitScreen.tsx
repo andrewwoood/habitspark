@@ -2,7 +2,7 @@ import * as React from 'react'
 import { useState } from 'react'
 import { View, StyleSheet } from 'react-native'
 import { TextInput, Button, Text } from 'react-native-paper'
-import { useHabitsStore } from '../store/habitsStore'
+import { useHabitStore } from '../store/habitStore'
 import type { NavigationProps } from '../types/navigation'
 
 export const CreateHabitScreen = ({ navigation }: NavigationProps) => {
@@ -10,7 +10,7 @@ export const CreateHabitScreen = ({ navigation }: NavigationProps) => {
   const [description, setDescription] = useState('')
   const [frequency, setFrequency] = useState('daily')
   const [loading, setLoading] = useState(false)
-  const { addHabit, fetchHabits } = useHabitsStore()
+  const { addHabit, fetchHabits } = useHabitStore()
 
   const handleCreateHabit = async () => {
     try {

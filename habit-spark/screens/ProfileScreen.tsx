@@ -9,7 +9,7 @@ import { getUnlockedAchievements } from '../utils/achievements'
 import type { NavigationProps } from '../types/navigation'
 
 export const ProfileScreen = ({ navigation }: NavigationProps) => {
-  const { user, signOut, updateAvatar, avatarUrl } = useAuthStore()
+  const { user, logout, updateAvatar, avatarUrl } = useAuthStore()
   const currentStreak = useHabitStore(state => state.currentStreak)
   const achievements = React.useMemo(() => 
     getUnlockedAchievements(currentStreak), [currentStreak])
@@ -32,7 +32,7 @@ export const ProfileScreen = ({ navigation }: NavigationProps) => {
         currentStreak={currentStreak}
         achievements={achievements}
       />
-      <Button mode="contained" onPress={signOut} style={styles.button}>
+      <Button mode="contained" onPress={logout} style={styles.button}>
         Sign Out
       </Button>
     </View>
