@@ -3,31 +3,52 @@ export interface HabitStatistics {
   totalCompletions: number
   thisWeekCompletions: number
   thisMonthCompletions: number
+  dailyCompletions: { date: string; percentage: number }[]
 }
 
-export const calculateStatistics = (completedDates: string[]): HabitStatistics => {
-  const today = new Date()
-  const uniqueDates = [...new Set(completedDates)]
+export const calculateStatistics = (completedDates: string[], totalHabits: number) => {
+  const now = new Date()
+  const todayStr = now.toISOString().split('T')[0]
   
-  // Calculate dates for week and month
-  const weekStart = new Date(today)
-  weekStart.setDate(today.getDate() - 7)
-  const monthStart = new Date(today)
-  monthStart.setDate(today.getDate() - 30)
+  // Get last year of dates
+  const oneYearAgo = new Date(now)
+  oneYearAgo.setFullYear(now.getFullYear() - 1)
   
-  const thisWeekCompletions = uniqueDates.filter(date => 
-    new Date(date) >= weekStart).length
-  
-  const thisMonthCompletions = uniqueDates.filter(date => 
-    new Date(date) >= monthStart).length
-  
-  // Calculate completion rate for the last 30 days
-  const completionRate = (thisMonthCompletions / 30) * 100
+  const lastYear = []
+  for (let d = new Date(oneYearAgo); d <= now; d.setDate(d.getDate() + 1)) {
+    lastYear.push(d.toISOString().split('T')[0])
+  }
+
+  // Normalize dates
+  const normalizedDates = completedDates
+    .map(date => new Date(date).toISOString().split('T')[0])
+    .filter(date => date <= todayStr)
+
+  // Calculate daily completion percentages
+  const dailyCompletions = lastYear.map(date => {
+    const completionsForDay = normalizedDates.filter(d => d === date).length
+    return {
+      date,
+      percentage: (completionsForDay / totalHabits) * 100
+    }
+  })
+
+  // Calculate last 7 days completion rate
+  const last7Days = dailyCompletions.slice(-7)
+  const last7DaysCompletions = last7Days.reduce((sum, day) => sum + day.percentage, 0) / 7
+
+  // Calculate this week's completions
+  const thisWeekCompletions = normalizedDates.filter(date => {
+    const d = new Date(date)
+    const today = new Date(now)
+    const weekStart = new Date(today.setDate(today.getDate() - today.getDay()))
+    return d >= weekStart && d <= now
+  }).length
 
   return {
-    completionRate,
-    totalCompletions: uniqueDates.length,
+    totalCompletions: new Set(normalizedDates).size,
     thisWeekCompletions,
-    thisMonthCompletions,
+    completionRate: Math.round(last7DaysCompletions),
+    dailyCompletions
   }
 } 

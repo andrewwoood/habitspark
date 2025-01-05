@@ -24,14 +24,29 @@ export const HomeScreen = ({ navigation }: NavigationProps) => {
     }, [])
   )
 
-  const today = new Date().toISOString().split('T')[0]
-  
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const todayStr = today.toISOString().split('T')[0]
+
+  // Add this function to check if a date is today
+  const isToday = (dateStr: string) => {
+    const now = new Date()
+    const today = now.toISOString().split('T')[0]
+    return today === dateStr
+  }
+
   // Get all completed dates across all habits
   const allCompletedDates = habits.reduce((dates, habit) => {
-    return [...dates, ...(habit.completed_dates || [])]
+    // Filter out any invalid dates and ensure they're in YYYY-MM-DD format
+    const validDates = (habit.completed_dates || []).filter(date => {
+      const d = new Date(date)
+      return !isNaN(d.getTime())
+    }).map(date => new Date(date).toISOString().split('T')[0])
+    
+    return [...dates, ...validDates]
   }, [] as string[])
 
-  // Count unique dates to calculate completion percentage
+  // Keep uniqueCompletedDates for streak calculations only
   const uniqueCompletedDates = [...new Set(allCompletedDates)]
 
   // Calculate streaks from all completed dates
@@ -49,7 +64,7 @@ export const HomeScreen = ({ navigation }: NavigationProps) => {
     calculateLongestStreak(uniqueCompletedDates), [uniqueCompletedDates])
 
   const statistics = React.useMemo(() => 
-    calculateStatistics(uniqueCompletedDates), [uniqueCompletedDates])
+    calculateStatistics(allCompletedDates, habits.length), [allCompletedDates, habits.length])
 
   const handleAddHabit = async () => {
     try {
@@ -96,7 +111,7 @@ export const HomeScreen = ({ navigation }: NavigationProps) => {
         {habits.length > 0 && (
           <View style={styles.heatmapContainer}>
             <Text variant="titleMedium" style={styles.sectionTitle}>Your Progress</Text>
-            <HeatmapView completedDates={uniqueCompletedDates} />
+            <HeatmapView dailyCompletions={statistics.dailyCompletions} />
           </View>
         )}
         
@@ -116,10 +131,10 @@ export const HomeScreen = ({ navigation }: NavigationProps) => {
                 left={props => (
                   <List.Icon
                     {...props}
-                    icon={habit.completed_dates?.includes(today) ? 'check-circle' : 'circle-outline'}
+                    icon={habit.completed_dates?.includes(todayStr) ? 'check-circle' : 'circle-outline'}
                   />
                 )}
-                onPress={() => toggleHabit(habit.id, today)}
+                onPress={() => toggleHabit(habit.id, todayStr)}
               />
             ))
           )}

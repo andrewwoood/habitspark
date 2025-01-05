@@ -10,27 +10,29 @@ interface StatisticsViewProps {
 export const StatisticsView = ({ statistics }: StatisticsViewProps) => {
   return (
     <View style={styles.container}>
-      <Surface style={styles.card}>
-        <Text variant="titleMedium">Last 30 Days</Text>
-        <Text variant="displaySmall" style={styles.number}>
-          {Math.round(statistics.completionRate)}%
+      <Surface style={styles.mainCard}>
+        <Text variant="displaySmall" style={styles.percentage}>
+          {statistics.completionRate}%
         </Text>
-        <Text variant="bodyMedium">Completion Rate</Text>
+        <Text variant="bodyMedium">Last 7 Days</Text>
+        <Text variant="bodySmall">Completion Rate</Text>
       </Surface>
+
       <View style={styles.row}>
         <Surface style={[styles.card, styles.halfCard]}>
-          <Text variant="titleMedium">This Week</Text>
           <Text variant="headlineMedium" style={styles.number}>
             {statistics.thisWeekCompletions}
           </Text>
-          <Text variant="bodyMedium">Completions</Text>
+          <Text variant="bodyMedium">This Week</Text>
+          <Text variant="bodySmall">Completions</Text>
         </Surface>
+
         <Surface style={[styles.card, styles.halfCard]}>
-          <Text variant="titleMedium">Total</Text>
           <Text variant="headlineMedium" style={styles.number}>
             {statistics.totalCompletions}
           </Text>
-          <Text variant="bodyMedium">Completions</Text>
+          <Text variant="bodyMedium">Total</Text>
+          <Text variant="bodySmall">Completions</Text>
         </Surface>
       </View>
     </View>
@@ -39,12 +41,21 @@ export const StatisticsView = ({ statistics }: StatisticsViewProps) => {
 
 const styles = StyleSheet.create({
   container: {
+    marginBottom: 24,
+  },
+  mainCard: {
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
     marginBottom: 16,
+    elevation: 2,
+  },
+  percentage: {
+    marginBottom: 4,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 8,
   },
   card: {
     padding: 16,
@@ -56,6 +67,6 @@ const styles = StyleSheet.create({
     flex: 0.48,
   },
   number: {
-    marginVertical: 4,
+    marginBottom: 4,
   },
 }) 
