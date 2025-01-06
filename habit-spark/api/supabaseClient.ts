@@ -12,6 +12,10 @@ export const supabase = createClient(
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: Platform.OS === 'web'
+    },
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
     }
   }
 )

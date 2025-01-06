@@ -1,16 +1,32 @@
 import * as React from 'react'
-import { useEffect } from 'react'
+import { useState } from 'react'
 import { View, StyleSheet, ScrollView } from 'react-native'
-import { Text, List, FAB, ActivityIndicator } from 'react-native-paper'
+import { Text, List, FAB, ActivityIndicator, Portal, Dialog, TextInput, Button } from 'react-native-paper'
 import { useGroupStore } from '../store/groupStore'
 import type { NavigationProps } from '../types/navigation'
 
 export const GroupScreen = ({ navigation }: NavigationProps) => {
-  const { groups, loading, error, fetchGroups } = useGroupStore()
+  const { groups, loading, error, fetchGroups, joinGroup } = useGroupStore()
+  const [joinDialogVisible, setJoinDialogVisible] = useState(false)
+  const [groupCode, setGroupCode] = useState('')
+  const [joining, setJoining] = useState(false)
 
-  useEffect(() => {
+  React.useEffect(() => {
     fetchGroups()
   }, [])
+
+  const handleJoinGroup = async () => {
+    try {
+      setJoining(true)
+      await joinGroup(groupCode.toUpperCase())
+      setJoinDialogVisible(false)
+      setGroupCode('')
+    } catch (error: any) {
+      alert(error.message)
+    } finally {
+      setJoining(false)
+    }
+  }
 
   if (loading && !groups.length) {
     return (
@@ -29,8 +45,9 @@ export const GroupScreen = ({ navigation }: NavigationProps) => {
           {groups.length === 0 ? (
             <List.Item
               title="Join or create a group"
+              description="Get started by joining an existing group or creating your own"
               left={props => <List.Icon {...props} icon="account-group" />}
-              onPress={() => navigation.navigate('CreateGroup')}
+              onPress={() => setJoinDialogVisible(true)}
             />
           ) : (
             groups.map(group => (
@@ -45,10 +62,48 @@ export const GroupScreen = ({ navigation }: NavigationProps) => {
           )}
         </List.Section>
       </ScrollView>
-      <FAB
+
+      <Portal>
+        <Dialog visible={joinDialogVisible} onDismiss={() => setJoinDialogVisible(false)}>
+          <Dialog.Title>Join Group</Dialog.Title>
+          <Dialog.Content>
+            <TextInput
+              label="Group Code"
+              value={groupCode}
+              onChangeText={setGroupCode}
+              autoCapitalize="characters"
+              style={styles.input}
+            />
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setJoinDialogVisible(false)}>Cancel</Button>
+            <Button 
+              onPress={handleJoinGroup} 
+              loading={joining}
+              disabled={!groupCode.trim()}
+            >
+              Join
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+
+      <FAB.Group
+        open={false}
+        visible
+        actions={[
+          {
+            icon: 'account-group-outline',
+            label: 'Join Group',
+            onPress: () => setJoinDialogVisible(true),
+          },
+          {
+            icon: 'plus',
+            label: 'Create Group',
+            onPress: () => navigation.navigate('CreateGroup'),
+          },
+        ]}
         icon="plus"
-        style={styles.fab}
-        onPress={() => navigation.navigate('CreateGroup')}
       />
     </View>
   )
@@ -71,10 +126,7 @@ const styles = StyleSheet.create({
     color: 'red',
     marginBottom: 16,
   },
-  fab: {
-    position: 'absolute',
-    margin: 16,
-    right: 0,
-    bottom: 0,
+  input: {
+    marginBottom: 16,
   },
 }) 

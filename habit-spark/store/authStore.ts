@@ -21,6 +21,8 @@ interface AuthState {
   updateAvatar: (url: string) => Promise<void>
   logout: () => Promise<void>
   updateDisplayName: (name: string) => Promise<void>
+  updateProfile: (profile: { displayName?: string; avatarUrl?: string }) => Promise<void>
+  syncUserProfile: () => Promise<void>
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -30,10 +32,14 @@ export const useAuthStore = create<AuthState>((set) => ({
   avatarUrl: null,
   error: null,
   displayName: null,
-  setUser: (user) => set({ 
-    user,
-    displayName: user?.user_metadata?.display_name || null
-  }),
+  setUser: (user) => {
+    console.log('Setting user with metadata:', user?.user_metadata)
+    set({ 
+      user,
+      displayName: user?.user_metadata?.name || user?.user_metadata?.display_name || null,
+      avatarUrl: user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null
+    })
+  },
   signIn: async (email: string, password: string) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -42,10 +48,13 @@ export const useAuthStore = create<AuthState>((set) => ({
       })
       if (error) throw error
       
+      console.log('User metadata:', data.user?.user_metadata)
+      
       set({ 
         user: data.user, 
         session: data.session,
-        displayName: data.user?.user_metadata?.display_name || null
+        displayName: data.user?.user_metadata?.display_name || null,
+        avatarUrl: data.user?.user_metadata?.avatar_url || data.user?.user_metadata?.picture || null
       })
     } catch (error) {
       console.error('Sign in error:', error)
@@ -112,6 +121,48 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ user, displayName: name })
     } catch (error: any) {
       set({ error: error.message })
+    }
+  },
+  updateProfile: async (profile) => {
+    try {
+      const { data: { user }, error } = await supabase.auth.updateUser({
+        data: { 
+          display_name: profile.displayName,
+          avatar_url: profile.avatarUrl,
+          updated_at: new Date().toISOString()
+        }
+      })
+      
+      if (error) throw error
+      set({ 
+        user,
+        displayName: profile.displayName || null,
+        avatarUrl: profile.avatarUrl || null
+      })
+    } catch (error: any) {
+      set({ error: error.message })
+    }
+  },
+  syncUserProfile: async () => {
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser()
+      if (error) throw error
+      if (!user) return
+
+      const { data, error: profileError } = await supabase
+        .rpc('get_user_profiles', {
+          user_ids: [user.id]
+        })
+
+      if (profileError) throw profileError
+      if (data && data[0]) {
+        set({ 
+          displayName: data[0].display_name || user.user_metadata?.name,
+          avatarUrl: data[0].avatar_url || user.user_metadata?.picture
+        })
+      }
+    } catch (error) {
+      console.error('Error syncing profile:', error)
     }
   },
 })) 

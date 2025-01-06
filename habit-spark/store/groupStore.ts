@@ -22,6 +22,7 @@ interface GroupState {
   fetchGroupStats: (groupId: string) => Promise<void>
   kickMember: (groupId: string, memberId: string) => Promise<void>
   deleteGroup: (groupId: string) => Promise<void>
+  updateGroupStats: (groupId: string, date: string) => Promise<void>
 }
 
 export const useGroupStore = create<GroupState>((set, get) => ({
@@ -57,24 +58,58 @@ export const useGroupStore = create<GroupState>((set, get) => ({
     try {
       set({ loading: true, error: null })
       const userId = (await supabase.auth.getUser()).data.user?.id
+      const formattedCode = code.trim().toUpperCase()
+      
+      // First create the RPC function in Supabase:
+      // Create this SQL function in Supabase:
+      /*
+      create or replace function join_group(group_code text, user_id uuid)
+      returns json language plpgsql security definer as $$
+      declare
+        target_group groups;
+        updated_group groups;
+      begin
+        -- Get the group
+        select * into target_group from groups where code = group_code;
+        
+        if target_group is null then
+          raise exception 'Group not found';
+        end if;
+        
+        -- Check if already a member
+        if user_id = any(target_group.members) then
+          raise exception 'Already a member';
+        end if;
+        
+        -- Update the group
+        update groups 
+        set members = array_append(members, user_id)
+        where id = target_group.id
+        returning * into updated_group;
+        
+        return row_to_json(updated_group);
+      end;
+      $$;
+      
+      grant execute on function join_group(text, uuid) to authenticated;
+      */
 
-      const { data: group, error: fetchError } = await supabase
-        .from('groups')
-        .select()
-        .eq('code', code)
-        .single()
+      // Then use it in the code:
+      const { data: updatedGroup, error } = await supabase
+        .rpc('join_group', {
+          group_code: formattedCode,
+          user_id: userId
+        })
 
-      if (fetchError) throw fetchError
-      if (!group) throw new Error('Group not found')
+      if (error) throw error
+      if (!updatedGroup) throw new Error('Failed to join group')
 
-      const { error: updateError } = await supabase
-        .from('groups')
-        .update({ members: [...group.members, userId] })
-        .eq('id', group.id)
-
-      if (updateError) throw updateError
-      set(state => ({ groups: [...state.groups, { ...group, members: [...group.members, userId] }] }))
+      // Update local state
+      set(state => ({
+        groups: [...state.groups, updatedGroup]
+      }))
     } catch (error: any) {
+      console.error('Join group error:', error)
       set({ error: error.message })
     } finally {
       set({ loading: false })
@@ -102,18 +137,21 @@ export const useGroupStore = create<GroupState>((set, get) => ({
     try {
       set({ loading: true, error: null })
       const userId = (await supabase.auth.getUser()).data.user?.id
-      const group = get().groups.find(g => g.id === groupId)
-
-      if (!group) throw new Error('Group not found')
 
       const { error } = await supabase
-        .from('groups')
-        .update({ members: group.members.filter(id => id !== userId) })
-        .eq('id', groupId)
+        .rpc('leave_group', {
+          group_id: groupId,
+          user_id: userId
+        })
 
       if (error) throw error
-      set(state => ({ groups: state.groups.filter(g => g.id !== groupId) }))
+
+      // Update local state
+      set(state => ({ 
+        groups: state.groups.filter(g => g.id !== groupId)
+      }))
     } catch (error: any) {
+      console.error('Leave group error:', error)
       set({ error: error.message })
     } finally {
       set({ loading: false })
@@ -189,6 +227,22 @@ export const useGroupStore = create<GroupState>((set, get) => ({
       set({ error: error.message })
     } finally {
       set({ loading: false })
+    }
+  },
+  updateGroupStats: async (groupId: string, date: string) => {
+    try {
+      const { error } = await supabase
+        .rpc('update_group_stats', {
+          p_group_id: groupId,
+          target_date: date
+        })
+
+      if (error) throw error
+
+      // Refresh stats after update
+      await get().fetchGroupStats(groupId)
+    } catch (error: any) {
+      console.error('Error updating group stats:', error)
     }
   }
 })) 

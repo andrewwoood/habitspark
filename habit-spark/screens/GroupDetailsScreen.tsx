@@ -1,50 +1,96 @@
 import * as React from 'react'
 import { useEffect, useState } from 'react'
 import { View, StyleSheet, ScrollView } from 'react-native'
-import { Text, List, Button, ActivityIndicator, IconButton } from 'react-native-paper'
+import { Text, List, Button, ActivityIndicator, IconButton, Avatar } from 'react-native-paper'
 import { useGroupStore } from '../store/groupStore'
 import { GroupHeatmap } from '../components/GroupHeatmap'
 import type { NavigationProps } from '../types/navigation'
 import { useAuthStore } from '../store/authStore'
 import { supabase } from '../api/supabaseClient'
 
+// First, add an interface for member data
+interface MemberProfile {
+  display_name: string
+  avatar_url: string
+}
+
 export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'GroupDetails'>) => {
   const { groupId } = route.params
-  const { groups, loading, error, leaveGroup, groupStats, fetchGroupStats, deleteGroup, kickMember } = useGroupStore()
+  const { 
+    groups, 
+    loading, 
+    error, 
+    leaveGroup, 
+    groupStats, 
+    fetchGroupStats, 
+    deleteGroup, 
+    kickMember, 
+    updateGroupStats  // Make sure this is included
+  } = useGroupStore()
   const group = groups.find(g => g.id === groupId)
   const { user } = useAuthStore()
-  const [memberNames, setMemberNames] = useState<Record<string, string>>({})
+  const [memberProfiles, setMemberProfiles] = useState<Record<string, MemberProfile>>({})
+  const [loadingProfiles, setLoadingProfiles] = useState(true)
   
   // Fetch group stats when screen loads
   useEffect(() => {
     fetchGroupStats(groupId)
   }, [groupId])
 
-  // Fetch member display names
+  // Fetch member profiles
   useEffect(() => {
-    const fetchMemberNames = async () => {
+    const fetchMemberProfiles = async () => {
       if (!group) return
+      setLoadingProfiles(true)
       
-      const { data, error } = await supabase
-        .from('users')
-        .select('id, raw_user_meta_data->display_name')
-        .in('id', group.members)
+      try {
+        const { data, error } = await supabase
+          .rpc('get_user_profiles', {
+            user_ids: group.members
+          })
 
-      if (error) {
-        console.error('Error fetching member names:', error)
-        return
+        if (error) throw error
+
+        const profiles = data.reduce((acc, user) => ({
+          ...acc,
+          [user.id]: {
+            display_name: user.display_name || 'Anonymous User',
+            avatar_url: user.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${user.id}`
+          }
+        }), {})
+
+        setMemberProfiles(profiles)
+      } catch (error) {
+        console.error('Error fetching member profiles:', error)
+      } finally {
+        setLoadingProfiles(false)
       }
-
-      const names = data.reduce((acc, user) => ({
-        ...acc,
-        [user.id]: user.raw_user_meta_data.display_name
-      }), {})
-
-      setMemberNames(names)
     }
 
-    fetchMemberNames()
+    fetchMemberProfiles()
   }, [group])
+
+  // Add effect to update stats when habits change
+  useEffect(() => {
+    if (!group) return
+
+    const updateStats = async () => {
+      try {
+        // Get today's date
+        const today = new Date().toISOString().split('T')[0]
+        
+        // First fetch historical stats
+        await fetchGroupStats(groupId)
+        
+        // Then update today's stats
+        await updateGroupStats(groupId, today)
+      } catch (error) {
+        console.error('Error updating group stats:', error)
+      }
+    }
+
+    updateStats()
+  }, [group?.members.length, groupId]) // Update when member count changes or group ID changes
 
   const handleLeave = async () => {
     try {
@@ -109,8 +155,14 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
           {group.members.map(memberId => (
             <List.Item
               key={memberId}
-              title={memberNames[memberId] || 'Loading...'}
-              left={props => <List.Icon {...props} icon="account" />}
+              title={memberProfiles[memberId]?.display_name || 'Loading...'}
+              left={props => (
+                <Avatar.Image
+                  size={40}
+                  source={{ uri: memberProfiles[memberId]?.avatar_url }}
+                  style={styles.avatar}
+                />
+              )}
               right={props => 
                 isGroupCreator && memberId !== user?.id ? (
                   <IconButton 
@@ -182,5 +234,8 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     marginTop: 16,
+  },
+  avatar: {
+    marginRight: 16,
   },
 }) 

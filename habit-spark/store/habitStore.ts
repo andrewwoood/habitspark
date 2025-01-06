@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { supabase } from '../api/supabaseClient'
 import type { Database } from '../types/database'
+import { useGroupStore } from './groupStore'
 
 type Habit = Database['public']['Tables']['habits']['Row']
 
@@ -12,6 +13,7 @@ interface HabitState {
   fetchHabits: () => Promise<void>
   addHabit: (habit: Omit<Habit, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'completed_dates'>) => Promise<void>
   toggleHabit: (habitId: string, date: string) => Promise<void>
+  toggleHabitCompletion: (habitId: string, date: string) => Promise<void>
 }
 
 export const useHabitStore = create<HabitState>((set, get) => ({
@@ -87,7 +89,6 @@ export const useHabitStore = create<HabitState>((set, get) => ({
 
   toggleHabit: async (habitId: string, date: string) => {
     const { data: { user } } = await supabase.auth.getUser()
-    console.log('Toggling habit for user:', user?.id, 'habitId:', habitId, 'date:', date)
     if (!user) return
 
     try {
@@ -103,8 +104,6 @@ export const useHabitStore = create<HabitState>((set, get) => ({
         completed_dates.splice(dateIndex, 1)
       }
 
-      console.log('Updated completed_dates:', completed_dates)
-
       const { error } = await supabase
         .from('habits')
         .update({ completed_dates })
@@ -118,9 +117,35 @@ export const useHabitStore = create<HabitState>((set, get) => ({
         h.id === habitId ? { ...h, completed_dates } : h
       )
       set({ habits: updatedHabits })
+
+      // Update group stats for all groups user is member of
+      const groups = useGroupStore.getState().groups
+      for (const group of groups) {
+        await useGroupStore.getState().updateGroupStats(
+          group.id,
+          date
+        )
+      }
     } catch (error) {
       console.error('Error toggling habit:', error)
       throw error
+    }
+  },
+
+  toggleHabitCompletion: async (habitId: string, date: string) => {
+    try {
+      // ... existing habit toggle logic
+
+      // Update group stats for all groups user is member of
+      const groups = useGroupStore.getState().groups
+      for (const group of groups) {
+        await useGroupStore.getState().updateGroupStats(
+          group.id,
+          date
+        )
+      }
+    } catch (error) {
+      console.error('Error toggling habit:', error)
     }
   }
 })) 
