@@ -34,21 +34,15 @@ export const ProfileScreen = ({ navigation }: NavigationProps) => {
       setLoading(true)
       
       try {
-        console.log('Current user metadata:', user.user_metadata)  // Debug log
-        
         const { data, error } = await supabase
           .rpc('get_user_profiles', {
             user_ids: [user.id]
           })
 
-        console.log('Profile data:', data)  // Debug log
-
         if (error) throw error
         if (data && data[0]) {
-          await updateProfile({
-            displayName: data[0].display_name,
-            avatarUrl: data[0].avatar_url || user.user_metadata?.picture  // Add Google picture fallback
-          })
+          await updateDisplayName(data[0].display_name)
+          await updateAvatar(data[0].avatar_url || user.user_metadata?.picture)
         }
       } catch (error) {
         console.error('Error fetching profile:', error)

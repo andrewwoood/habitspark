@@ -11,7 +11,6 @@ interface AvatarUploadProps {
 }
 
 export const AvatarUpload = ({ size, onUpload, currentUrl }: AvatarUploadProps) => {
-  console.log('Current avatar URL:', currentUrl) // Debug log
 
   const handlePress = async () => {
     try {

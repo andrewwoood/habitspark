@@ -14,6 +14,7 @@ interface HabitState {
   addHabit: (habit: Omit<Habit, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'completed_dates'>) => Promise<void>
   toggleHabit: (habitId: string, date: string) => Promise<void>
   toggleHabitCompletion: (habitId: string, date: string) => Promise<void>
+  currentStreak: number;
 }
 
 export const useHabitStore = create<HabitState>((set, get) => ({
