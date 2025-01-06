@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView } from 'react-native'
-import { Text, List, Button, ActivityIndicator, IconButton, Avatar } from 'react-native-paper'
+import { View, StyleSheet, ScrollView, Share, Clipboard } from 'react-native'
+import { Text, List, Button, ActivityIndicator, IconButton, Avatar, Snackbar } from 'react-native-paper'
 import { useGroupStore } from '../store/groupStore'
 import { GroupHeatmap } from '../components/GroupHeatmap'
 import type { NavigationProps } from '../types/navigation'
@@ -25,12 +25,15 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
     fetchGroupStats, 
     deleteGroup, 
     kickMember, 
-    updateGroupStats  // Make sure this is included
+    updateGroupStats,  // Make sure this is included
+    generateInviteLink,  // Added generateInviteLink
+    getInviteUrl  // Add this
   } = useGroupStore()
   const group = groups.find(g => g.id === groupId)
   const { user } = useAuthStore()
   const [memberProfiles, setMemberProfiles] = useState<Record<string, MemberProfile>>({})
   const [loadingProfiles, setLoadingProfiles] = useState(true)
+  const [showCopiedMessage, setShowCopiedMessage] = useState(false)
   
   // Fetch group stats when screen loads
   useEffect(() => {
@@ -120,6 +123,25 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
     }
   }
 
+  const handleShare = async () => {
+    try {
+      const inviteMessage = `Join my habit group "${group.name}" in HabitSpark!\nGroup Code: ${group.code}`
+      await Share.share({
+        message: inviteMessage
+      })
+    } catch (error) {
+      // If share fails, copy to clipboard instead
+      Clipboard.setString(group.code)
+      alert('Group code copied to clipboard!')
+    }
+  }
+
+  const handleCopyInviteLink = () => {
+    const inviteUrl = getInviteUrl(groupId)
+    Clipboard.setString(inviteUrl)
+    setShowCopiedMessage(true)
+  }
+
   if (loading) {
     return (
       <View style={styles.centered}>
@@ -196,6 +218,23 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
           Delete Group
         </Button>
       )}
+
+      <Button
+        mode="outlined"
+        onPress={handleCopyInviteLink}
+        style={styles.inviteButton}
+        icon="link"
+      >
+        Copy Invite Link
+      </Button>
+
+      <Snackbar
+        visible={showCopiedMessage}
+        onDismiss={() => setShowCopiedMessage(false)}
+        duration={2000}
+      >
+        Invite link copied to clipboard!
+      </Snackbar>
     </View>
   )
 }
@@ -237,5 +276,8 @@ const styles = StyleSheet.create({
   },
   avatar: {
     marginRight: 16,
+  },
+  inviteButton: {
+    marginTop: 16,
   },
 }) 

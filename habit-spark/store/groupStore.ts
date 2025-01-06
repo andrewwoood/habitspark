@@ -23,6 +23,9 @@ interface GroupState {
   kickMember: (groupId: string, memberId: string) => Promise<void>
   deleteGroup: (groupId: string) => Promise<void>
   updateGroupStats: (groupId: string, date: string) => Promise<void>
+  generateInviteLink: (groupId: string) => string
+  joinGroupByInvite: (groupId: string) => Promise<void>
+  getInviteUrl: (groupId: string) => string
 }
 
 export const useGroupStore = create<GroupState>((set, get) => ({
@@ -244,5 +247,57 @@ export const useGroupStore = create<GroupState>((set, get) => ({
     } catch (error: any) {
       console.error('Error updating group stats:', error)
     }
+  },
+  generateInviteLink: (groupId: string) => {
+    // Generate a deep link that includes the group ID
+    return `habitspark://invite/${groupId}`
+  },
+  joinGroupByInvite: async (groupId: string) => {
+    try {
+      set({ loading: true, error: null })
+      const userId = (await supabase.auth.getUser()).data.user?.id
+      if (!userId) throw new Error('Not authenticated')
+
+      // Get the group first
+      const { data: group, error: fetchError } = await supabase
+        .from('groups')
+        .select()
+        .eq('id', groupId)
+        .single()
+
+      if (fetchError) throw fetchError
+      if (!group) throw new Error('Group not found')
+
+      // Check if already a member
+      if (group.members.includes(userId)) {
+        throw new Error('Already a member')
+      }
+
+      // Add member to group
+      const { data: updatedGroup, error: updateError } = await supabase
+        .from('groups')
+        .update({ 
+          members: [...group.members, userId]
+        })
+        .eq('id', groupId)
+        .select()
+        .single()
+
+      if (updateError) throw updateError
+
+      // Update local state
+      set(state => ({
+        groups: [...state.groups, updatedGroup]
+      }))
+    } catch (error: any) {
+      console.error('Join group by invite error:', error)
+      set({ error: error.message })
+    } finally {
+      set({ loading: false })
+    }
+  },
+  getInviteUrl: (groupId: string) => {
+    // Using your production domain - replace with actual domain
+    return `https://habitspark.app/invite/${groupId}`
   }
 })) 
