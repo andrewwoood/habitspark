@@ -18,6 +18,10 @@ interface GroupState {
   joinGroup: (code: string) => Promise<void>
   fetchGroups: () => Promise<void>
   leaveGroup: (groupId: string) => Promise<void>
+  groupStats: Record<string, { date: string; completion_rate: number; member_count: number }[]>
+  fetchGroupStats: (groupId: string) => Promise<void>
+  kickMember: (groupId: string, memberId: string) => Promise<void>
+  deleteGroup: (groupId: string) => Promise<void>
 }
 
 export const useGroupStore = create<GroupState>((set, get) => ({
@@ -109,6 +113,78 @@ export const useGroupStore = create<GroupState>((set, get) => ({
 
       if (error) throw error
       set(state => ({ groups: state.groups.filter(g => g.id !== groupId) }))
+    } catch (error: any) {
+      set({ error: error.message })
+    } finally {
+      set({ loading: false })
+    }
+  },
+  groupStats: {},
+  fetchGroupStats: async (groupId: string) => {
+    try {
+      set({ loading: true, error: null })
+      const { data, error } = await supabase
+        .from('group_stats')
+        .select('*')
+        .eq('group_id', groupId)
+        .order('date', { ascending: false })
+
+      if (error) throw error
+      set(state => ({
+        groupStats: {
+          ...state.groupStats,
+          [groupId]: data || []
+        }
+      }))
+    } catch (error: any) {
+      set({ error: error.message })
+    } finally {
+      set({ loading: false })
+    }
+  },
+  kickMember: async (groupId: string, memberId: string) => {
+    try {
+      set({ loading: true, error: null })
+      const group = get().groups.find(g => g.id === groupId)
+      if (!group) throw new Error('Group not found')
+
+      const { error } = await supabase
+        .from('groups')
+        .update({ 
+          members: group.members.filter(id => id !== memberId)
+        })
+        .eq('id', groupId)
+
+      if (error) throw error
+      
+      // Update local state
+      set(state => ({
+        groups: state.groups.map(g =>
+          g.id === groupId 
+            ? { ...g, members: g.members.filter(id => id !== memberId) }
+            : g
+        )
+      }))
+    } catch (error: any) {
+      set({ error: error.message })
+    } finally {
+      set({ loading: false })
+    }
+  },
+  deleteGroup: async (groupId: string) => {
+    try {
+      set({ loading: true, error: null })
+      const { error } = await supabase
+        .from('groups')
+        .delete()
+        .eq('id', groupId)
+
+      if (error) throw error
+      
+      // Update local state
+      set(state => ({
+        groups: state.groups.filter(g => g.id !== groupId)
+      }))
     } catch (error: any) {
       set({ error: error.message })
     } finally {

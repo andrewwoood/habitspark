@@ -1,20 +1,10 @@
 import { create } from 'zustand'
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from '../api/supabaseClient'
 import { supabaseConfig } from '../config/oauth'
 import { User, Session } from '@supabase/supabase-js'
 import { Platform } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useHabitStore } from './habitStore'
-
-const supabase = createClient(
-  supabaseConfig.supabaseUrl,
-  supabaseConfig.supabaseAnonKey,
-  {
-    auth: {
-      persistSession: true,
-    }
-  }
-)
 
 interface AuthState {
   user: User | null
@@ -22,6 +12,7 @@ interface AuthState {
   loading: boolean
   avatarUrl: string | null
   error: string | null
+  displayName: string | null
   setUser: (user: User) => void
   fetchAvatar: () => Promise<void>
   signIn: (email: string, password: string) => Promise<void>
@@ -29,6 +20,7 @@ interface AuthState {
   signOut: () => Promise<void>
   updateAvatar: (url: string) => Promise<void>
   logout: () => Promise<void>
+  updateDisplayName: (name: string) => Promise<void>
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -37,7 +29,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   loading: false,
   avatarUrl: null,
   error: null,
-  setUser: (user) => set({ user }),
+  displayName: null,
+  setUser: (user) => set({ 
+    user,
+    displayName: user?.user_metadata?.display_name || null
+  }),
   signIn: async (email: string, password: string) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -46,11 +42,11 @@ export const useAuthStore = create<AuthState>((set) => ({
       })
       if (error) throw error
       
-      // Store session in AsyncStorage
-      await AsyncStorage.setItem('supabase-auth', JSON.stringify(data.session))
-      console.log('Stored session:', data.session)
-      
-      set({ user: data.user, session: data.session })
+      set({ 
+        user: data.user, 
+        session: data.session,
+        displayName: data.user?.user_metadata?.display_name || null
+      })
     } catch (error) {
       console.error('Sign in error:', error)
       throw error
@@ -101,6 +97,21 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ user: null, session: null })
     } catch (error) {
       console.error('Error logging out:', error)
+    }
+  },
+  updateDisplayName: async (name: string) => {
+    try {
+      const { data: { user }, error } = await supabase.auth.updateUser({
+        data: { 
+          display_name: name,
+          updated_at: new Date().toISOString()
+        }
+      })
+      
+      if (error) throw error
+      set({ user, displayName: name })
+    } catch (error: any) {
+      set({ error: error.message })
     }
   },
 })) 

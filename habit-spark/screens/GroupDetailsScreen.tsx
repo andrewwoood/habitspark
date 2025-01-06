@@ -1,39 +1,74 @@
 import * as React from 'react'
 import { useEffect, useState } from 'react'
 import { View, StyleSheet, ScrollView } from 'react-native'
-import { Text, List, Button, ActivityIndicator } from 'react-native-paper'
+import { Text, List, Button, ActivityIndicator, IconButton } from 'react-native-paper'
 import { useGroupStore } from '../store/groupStore'
-import { useHabitStore } from '../store/habitStore'
 import { GroupHeatmap } from '../components/GroupHeatmap'
 import type { NavigationProps } from '../types/navigation'
+import { useAuthStore } from '../store/authStore'
+import { supabase } from '../api/supabaseClient'
 
 export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'GroupDetails'>) => {
   const { groupId } = route.params
-  const { groups, loading, error, leaveGroup } = useGroupStore()
-  const { habits } = useHabitStore()
+  const { groups, loading, error, leaveGroup, groupStats, fetchGroupStats, deleteGroup, kickMember } = useGroupStore()
   const group = groups.find(g => g.id === groupId)
+  const { user } = useAuthStore()
+  const [memberNames, setMemberNames] = useState<Record<string, string>>({})
+  
+  // Fetch group stats when screen loads
+  useEffect(() => {
+    fetchGroupStats(groupId)
+  }, [groupId])
 
-  // Calculate group completion data
-  const completionData = React.useMemo(() => {
-    if (!group || !habits.length) return {}
-    
-    const dateCompletions: { [date: string]: number } = {}
-    group.members.forEach(memberId => {
-      const memberHabits = habits.filter(h => h.user_id === memberId)
-      memberHabits.forEach(habit => {
-        habit.completed_dates?.forEach(date => {
-          dateCompletions[date] = (dateCompletions[date] || 0) + 1
-        })
-      })
-    })
-    
-    return dateCompletions
-  }, [group, habits])
+  // Fetch member display names
+  useEffect(() => {
+    const fetchMemberNames = async () => {
+      if (!group) return
+      
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, raw_user_meta_data->display_name')
+        .in('id', group.members)
+
+      if (error) {
+        console.error('Error fetching member names:', error)
+        return
+      }
+
+      const names = data.reduce((acc, user) => ({
+        ...acc,
+        [user.id]: user.raw_user_meta_data.display_name
+      }), {})
+
+      setMemberNames(names)
+    }
+
+    fetchMemberNames()
+  }, [group])
 
   const handleLeave = async () => {
     try {
       await leaveGroup(groupId)
       navigation.goBack()
+    } catch (error: any) {
+      alert(error.message)
+    }
+  }
+
+  const isGroupCreator = group?.created_by === user?.id
+
+  const handleKickMember = async (memberId: string) => {
+    try {
+      await kickMember(groupId, memberId)
+    } catch (error: any) {
+      alert(error.message)
+    }
+  }
+
+  const handleDeleteGroup = async () => {
+    try {
+      await deleteGroup(groupId)
+      navigation.navigate('Groups')
     } catch (error: any) {
       alert(error.message)
     }
@@ -64,8 +99,7 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
       <View style={styles.heatmapContainer}>
         <Text variant="titleMedium" style={styles.sectionTitle}>Group Progress</Text>
         <GroupHeatmap 
-          completionData={completionData}
-          totalMembers={group.members.length}
+          completionData={groupStats[groupId] || []}
         />
       </View>
 
@@ -75,8 +109,17 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
           {group.members.map(memberId => (
             <List.Item
               key={memberId}
-              title={memberId} // In a real app, we'd fetch user details
+              title={memberNames[memberId] || 'Loading...'}
               left={props => <List.Icon {...props} icon="account" />}
+              right={props => 
+                isGroupCreator && memberId !== user?.id ? (
+                  <IconButton 
+                    {...props} 
+                    icon="account-remove" 
+                    onPress={() => handleKickMember(memberId)}
+                  />
+                ) : null
+              }
             />
           ))}
         </List.Section>
@@ -90,6 +133,17 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
       >
         Leave Group
       </Button>
+
+      {isGroupCreator && (
+        <Button
+          mode="contained"
+          onPress={handleDeleteGroup}
+          style={styles.deleteButton}
+          buttonColor="#ff4444"
+        >
+          Delete Group
+        </Button>
+      )}
     </View>
   )
 }
@@ -125,5 +179,8 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     marginBottom: 8,
+  },
+  deleteButton: {
+    marginTop: 16,
   },
 }) 
