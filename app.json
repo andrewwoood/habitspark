@@ -18,16 +18,33 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.habitspark.app"
+      "bundleIdentifier": "com.habitspark.app",
+      "associatedDomains": [
+        "applinks:habitspark.app"
+      ]
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "package": "com.habitspark.app"
+      "package": "com.habitspark.app",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "habitspark.app",
+              "pathPrefix": "/invite"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
-    "scheme": "habit-spark",
+    "scheme": "habitspark",
     "sdkVersion": "48.0.0",
     "extra": {
       "eas": {
