@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { View } from 'react-native';
 import { getStoredInviteData, processInvite, clearStoredInviteData } from '../store/inviteStore';
 
 export function AuthSuccess() {
@@ -13,4 +14,6 @@ export function AuthSuccess() {
 
     processStoredInvite();
   }, []);
+
+  return <View />;
 } 

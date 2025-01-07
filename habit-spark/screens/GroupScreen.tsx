@@ -4,11 +4,12 @@ import { View, StyleSheet, ScrollView } from 'react-native'
 import { Text, List, FAB, ActivityIndicator, Portal, Dialog, TextInput, Button } from 'react-native-paper'
 import { useGroupStore } from '../store/groupStore'
 import type { NavigationProps } from '../types/navigation'
+import { joinGroupWithInvite } from '../store/inviteStore'
 
 export const GroupScreen = ({ navigation }: NavigationProps) => {
   const { groups, loading, error, fetchGroups, joinGroup } = useGroupStore()
   const [joinDialogVisible, setJoinDialogVisible] = useState(false)
-  const [groupCode, setGroupCode] = useState('')
+  const [input, setInput] = useState('')
   const [joining, setJoining] = useState(false)
 
   React.useEffect(() => {
@@ -18,9 +19,21 @@ export const GroupScreen = ({ navigation }: NavigationProps) => {
   const handleJoinGroup = async () => {
     try {
       setJoining(true)
-      await joinGroup(groupCode.toUpperCase())
+      const trimmedInput = input.trim()
+      
+      if (trimmedInput.includes('habitspark.app/invite/')) {
+        const url = new URL(trimmedInput)
+        const parts = url.pathname.split('/')
+        const groupId = parts[parts.length - 2]
+        const inviteCode = parts[parts.length - 1]
+        await joinGroupWithInvite(groupId, inviteCode)
+      } else {
+        await joinGroup(trimmedInput.toUpperCase())
+      }
+      
+      await fetchGroups()
       setJoinDialogVisible(false)
-      setGroupCode('')
+      setInput('')
     } catch (error: any) {
       alert(error.message)
     } finally {
@@ -68,10 +81,9 @@ export const GroupScreen = ({ navigation }: NavigationProps) => {
           <Dialog.Title>Join Group</Dialog.Title>
           <Dialog.Content>
             <TextInput
-              label="Group Code"
-              value={groupCode}
-              onChangeText={setGroupCode}
-              autoCapitalize="characters"
+              label="Group Code or Invite Link"
+              value={input}
+              onChangeText={setInput}
               style={styles.input}
             />
           </Dialog.Content>
@@ -80,7 +92,7 @@ export const GroupScreen = ({ navigation }: NavigationProps) => {
             <Button 
               onPress={handleJoinGroup} 
               loading={joining}
-              disabled={!groupCode.trim()}
+              disabled={!input.trim()}
             >
               Join
             </Button>

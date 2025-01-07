@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { supabase } from '../api/supabaseClient'
+import { generateInviteLink } from '../store/inviteStore'
 
 export interface Group {
   id: string
@@ -23,9 +24,8 @@ interface GroupState {
   kickMember: (groupId: string, memberId: string) => Promise<void>
   deleteGroup: (groupId: string) => Promise<void>
   updateGroupStats: (groupId: string, date: string) => Promise<void>
-  generateInviteLink: (groupId: string) => string
-  joinGroupByInvite: (groupId: string) => Promise<void>
-  getInviteUrl: (groupId: string) => string
+  generateInviteLink: (groupId: string) => Promise<string>
+  joinGroupByInvite: (groupId: string, inviteCode: string) => Promise<void>
 }
 
 export const useGroupStore = create<GroupState>((set, get) => ({
@@ -248,56 +248,30 @@ export const useGroupStore = create<GroupState>((set, get) => ({
       console.error('Error updating group stats:', error)
     }
   },
-  generateInviteLink: (groupId: string) => {
-    // Generate a deep link that includes the group ID
-    return `habitspark://invite/${groupId}`
-  },
-  joinGroupByInvite: async (groupId: string) => {
+  generateInviteLink: async (groupId: string) => {
     try {
-      set({ loading: true, error: null })
-      const userId = (await supabase.auth.getUser()).data.user?.id
-      if (!userId) throw new Error('Not authenticated')
-
-      // Get the group first
-      const { data: group, error: fetchError } = await supabase
-        .from('groups')
-        .select()
-        .eq('id', groupId)
-        .single()
-
-      if (fetchError) throw fetchError
-      if (!group) throw new Error('Group not found')
-
-      // Check if already a member
-      if (group.members.includes(userId)) {
-        throw new Error('Already a member')
-      }
-
-      // Add member to group
-      const { data: updatedGroup, error: updateError } = await supabase
-        .from('groups')
-        .update({ 
-          members: [...group.members, userId]
-        })
-        .eq('id', groupId)
-        .select()
-        .single()
-
-      if (updateError) throw updateError
-
-      // Update local state
-      set(state => ({
-        groups: [...state.groups, updatedGroup]
-      }))
+      set({ loading: true, error: null });
+      const { fullUrl } = await generateInviteLink(groupId);
+      return fullUrl;
     } catch (error: any) {
-      console.error('Join group by invite error:', error)
-      set({ error: error.message })
+      set({ error: error.message });
+      throw error;
     } finally {
-      set({ loading: false })
+      set({ loading: false });
     }
   },
-  getInviteUrl: (groupId: string) => {
-    // Using your production domain - replace with actual domain
-    return `https://habitspark.app/invite/${groupId}`
+  joinGroupByInvite: async (groupId: string, inviteCode: string) => {
+    try {
+      set({ loading: true, error: null });
+      await validateAndJoinGroup(groupId, inviteCode);
+      
+      // Refresh groups list after joining
+      await get().fetchGroups();
+    } catch (error: any) {
+      set({ error: error.message });
+      throw error;
+    } finally {
+      set({ loading: false });
+    }
   }
 })) 

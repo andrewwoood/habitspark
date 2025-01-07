@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Habit Spark</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>
+        // Simple platform detection
+        function handleInviteLink() {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isAndroid = /Android/.test(navigator.userAgent);
+            
+            if (isIOS) {
+                window.location.href = 'https://apps.apple.com/app/habitspark'; // Replace with actual App Store URL
+            } else if (isAndroid) {
+                window.location.href = 'https://play.google.com/store/apps/details?id=com.habitspark.app'; // Replace with actual Play Store URL
+            }
+        }
+
+        // Check if it's an invite link
+        if (window.location.pathname.startsWith('/invite/')) {
+            handleInviteLink();
+        }
+    </script>
+</head>
+<body>
+    <h1>Habit Spark</h1>
+    <p>Download the app to join your group!</p>
+</body>
+</html> 

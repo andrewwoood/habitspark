@@ -1,12 +1,14 @@
 import * as React from 'react'
 import { useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView, Share, Clipboard } from 'react-native'
+import { View, StyleSheet, ScrollView, Share } from 'react-native'
 import { Text, List, Button, ActivityIndicator, IconButton, Avatar, Snackbar } from 'react-native-paper'
 import { useGroupStore } from '../store/groupStore'
 import { GroupHeatmap } from '../components/GroupHeatmap'
 import type { NavigationProps } from '../types/navigation'
 import { useAuthStore } from '../store/authStore'
 import { supabase } from '../api/supabaseClient'
+import { generateInviteLink } from '../store/inviteStore'
+import * as Clipboard from 'expo-clipboard'
 
 // First, add an interface for member data
 interface MemberProfile {
@@ -25,9 +27,7 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
     fetchGroupStats, 
     deleteGroup, 
     kickMember, 
-    updateGroupStats,  // Make sure this is included
-    generateInviteLink,  // Added generateInviteLink
-    getInviteUrl  // Add this
+    updateGroupStats
   } = useGroupStore()
   const group = groups.find(g => g.id === groupId)
   const { user } = useAuthStore()
@@ -123,24 +123,33 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
     }
   }
 
-  const handleShare = async () => {
+  const handleCopyInviteLink = async () => {
     try {
-      const inviteMessage = `Join my habit group "${group.name}" in HabitSpark!\nGroup Code: ${group.code}`
-      await Share.share({
-        message: inviteMessage
-      })
-    } catch (error) {
-      // If share fails, copy to clipboard instead
-      Clipboard.setString(group.code)
-      alert('Group code copied to clipboard!')
-    }
-  }
+      console.log('A. Starting with groupId:', groupId);
+      
+      if (!groupId) {
+        throw new Error('Invalid group');
+      }
 
-  const handleCopyInviteLink = () => {
-    const inviteUrl = getInviteUrl(groupId)
-    Clipboard.setString(inviteUrl)
-    setShowCopiedMessage(true)
-  }
+      // Wait for URL generation
+      const url = await generateInviteLink(groupId);
+      console.log('B. Received URL:', url);
+      console.log('C. URL type:', typeof url);
+      
+      if (!url) {
+        throw new Error('No URL generated');
+      }
+
+      // Copy to clipboard
+      const success = await Clipboard.setStringAsync(url);
+      console.log('D. Clipboard operation success:', success);
+      
+      setShowCopiedMessage(true);
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Failed to copy invite link');
+    }
+  };
 
   if (loading) {
     return (
