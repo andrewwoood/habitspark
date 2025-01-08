@@ -11,6 +11,7 @@ export const GroupScreen = ({ navigation }: NavigationProps) => {
   const [joinDialogVisible, setJoinDialogVisible] = useState(false)
   const [input, setInput] = useState('')
   const [joining, setJoining] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
 
   React.useEffect(() => {
     fetchGroups()
@@ -101,8 +102,9 @@ export const GroupScreen = ({ navigation }: NavigationProps) => {
       </Portal>
 
       <FAB.Group
-        open={false}
+        open={isOpen}
         visible
+        onStateChange={({ open }) => setIsOpen(open)}
         actions={[
           {
             icon: 'account-group-outline',
@@ -115,7 +117,7 @@ export const GroupScreen = ({ navigation }: NavigationProps) => {
             onPress: () => navigation.navigate('CreateGroup'),
           },
         ]}
-        icon="plus"
+        icon={isOpen ? 'close' : 'plus'}
       />
     </View>
   )
