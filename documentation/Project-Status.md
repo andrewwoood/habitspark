@@ -7,6 +7,7 @@
 - Daily completion system
 - Streak calculations
 - Basic statistics
+- Edit and delete habit functionality
 
 ### UI/UX Improvements (New)
 - Redesigned home screen with modern aesthetic
@@ -14,6 +15,7 @@
 - Interactive heatmap visualization
 - Responsive touch feedback
 - Clean, amber-themed design system
+- Modal-based habit creation and editing
 
 ### Data Management
 - Real-time data synchronization
@@ -30,6 +32,11 @@
    - Profile
 2. Remove redundant navigation elements
 3. Ensure consistent navigation patterns
+
+### Modal Integration
+1. Implemented modal for creating and editing habits
+2. Added confirmation dialog for habit deletion
+3. Integrated loading states and toast notifications for user feedback
 
 ### Screen Redesigns
 1. Group Screen
