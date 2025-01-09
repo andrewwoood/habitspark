@@ -240,11 +240,6 @@ export const HomeScreen = ({ navigation }: NavigationProps) => {
           <Text variant="headlineMedium" style={[styles.title, { color: theme.text.primary }]}>
             Habits
           </Text>
-          <IconButton
-            icon={isDark ? 'weather-sunny' : 'weather-night'}
-            iconColor={theme.text.primary}
-            onPress={toggleTheme}
-          />
         </View>
         
         {/* Fixed Content */}
