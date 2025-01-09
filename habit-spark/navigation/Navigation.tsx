@@ -44,29 +44,29 @@ const MainTabs = () => {
         name="HomeTab"
         component={HomeScreen}
         options={{
-          tabBarLabel: 'Calendar',
+          tabBarLabel: 'Habits',
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="calendar" size={size} color={color} />
+            <MaterialCommunityIcons name="home" size={size} color={color} />
           ),
         }}
       />
       <Tab.Screen
-        name="Goals"
+        name="Groups"
         component={GroupScreen}
         options={{
-          tabBarLabel: 'Target',
+          tabBarLabel: 'Groups',
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="target" size={size} color={color} />
+            <MaterialCommunityIcons name="account-group" size={size} color={color} />
           ),
         }}
       />
       <Tab.Screen
-        name="Achievements"
-        component={GroupScreen} // We'll create AchievementsScreen later
+        name="Profile"
+        component={ProfileScreen}
         options={{
-          tabBarLabel: 'Trophy',
+          tabBarLabel: 'Profile',
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="trophy" size={size} color={color} />
+            <MaterialCommunityIcons name="account" size={size} color={color} />
           ),
         }}
       />

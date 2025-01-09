@@ -19,7 +19,7 @@ export const HomeScreen = ({ navigation }: NavigationProps) => {
   const { habits, loading, error, fetchHabits, toggleHabit, updateBestStreak, addHabit, updateHabit, deleteHabit } = useHabitStore()
   const [showMilestone, setShowMilestone] = React.useState(false)
   const lastStreak = React.useRef(0)
-  const [timeframe, setTimeframe] = React.useState('6m')
+  const [timeframe, setTimeframe] = React.useState('3m')
   const { theme, isDark, toggleTheme } = useAppTheme()
   const [isModalVisible, setIsModalVisible] = React.useState(false)
   const [newHabitName, setNewHabitName] = React.useState('')
