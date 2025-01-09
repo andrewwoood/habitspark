@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { View, StyleSheet, ActivityIndicator } from 'react-native'
-import { Text, Button, Avatar, TextInput as PaperTextInput } from 'react-native-paper'
+import { View, StyleSheet, ActivityIndicator, SafeAreaView } from 'react-native'
+import { Text, Button, Avatar, TextInput as PaperTextInput, Card } from 'react-native-paper'
 import { useAuthStore } from '../store/authStore'
 import { useHabitStore } from '../store/habitStore'
 import { AvatarUpload } from '../components/AvatarUpload'
@@ -9,8 +9,10 @@ import { getUnlockedAchievements } from '../utils/achievements'
 import type { NavigationProps } from '../types/navigation'
 import { useState, useEffect } from 'react'
 import { supabase } from '../api/supabaseClient'
+import { useAppTheme } from '../theme/ThemeContext'
 
 export const ProfileScreen = ({ navigation }: NavigationProps) => {
+  const { theme, isDark } = useAppTheme()
   const { 
     user, 
     logout, 
@@ -85,39 +87,62 @@ export const ProfileScreen = ({ navigation }: NavigationProps) => {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <AvatarUpload 
-          size={100} 
-          onUpload={handleAvatarUpload} 
-          currentUrl={avatarUrl || `https://api.dicebear.com/7.x/bottts/svg?seed=${user?.id}`} 
-        />
-        {editing ? (
-          <PaperTextInput
-            mode="outlined"
-            value={newName}
-            onChangeText={setNewName}
-            onBlur={handleUpdateName}
-            autoFocus
-            style={styles.nameInput}
-            right={<PaperTextInput.Icon icon="check" onPress={handleUpdateName} />}
-          />
-        ) : (
+    <View style={[
+      styles.container,
+      {
+        backgroundColor: theme.background,
+      }
+    ]}>
+      <Card style={[styles.card, { backgroundColor: theme.surface }]}>
+        <Card.Content style={styles.cardContent}>
+          <View style={styles.avatarContainer}>
+            <AvatarUpload 
+              size={100} 
+              onUpload={handleAvatarUpload} 
+              currentUrl={avatarUrl || `https://api.dicebear.com/7.x/bottts/svg?seed=${user?.id}`} 
+            />
+          </View>
           <Text 
             variant="headlineMedium" 
-            style={styles.displayName}
-            onPress={() => setEditing(true)}
+            style={[styles.displayName, { color: theme.text.primary }]}
           >
             {displayName || 'Set Display Name'}
           </Text>
-        )}
-        <Text variant="bodyMedium" style={styles.email}>{user?.email}</Text>
-      </View>
-      <AchievementsList
-        currentStreak={currentStreak}
-        achievements={achievements}
-      />
-      <Button mode="contained" onPress={logout} style={styles.button}>
+          <Text 
+            variant="bodyMedium" 
+            style={[styles.email, { color: theme.text.secondary }]}
+          >
+            {user?.email}
+          </Text>
+        </Card.Content>
+      </Card>
+      <Card style={[styles.achievementsCard, { backgroundColor: theme.surface }]}>
+        <Card.Title 
+          title="Achievements" 
+          left={(props) => (
+            <Avatar.Icon 
+              {...props} 
+              icon="trophy" 
+              color={theme.primary}
+              style={{ backgroundColor: 'transparent' }}
+            />
+          )}
+          titleStyle={[styles.cardTitle, { color: theme.text.primary }]}
+        />
+        <Card.Content>
+          <AchievementsList
+            currentStreak={currentStreak}
+            achievements={achievements}
+          />
+        </Card.Content>
+      </Card>
+      <Button 
+        mode="outlined"
+        onPress={logout} 
+        style={styles.button}
+        textColor={theme.text.primary}
+        buttonColor={theme.surface}
+      >
         Sign Out
       </Button>
     </View>
@@ -125,6 +150,9 @@ export const ProfileScreen = ({ navigation }: NavigationProps) => {
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     padding: 16,
@@ -135,22 +163,75 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    alignItems: 'center',
-    marginVertical: 32,
+    position: 'sticky',
+    top: 0,
+    zIndex: 10,
+    borderBottomWidth: 1,
+    backdropFilter: 'blur(8px)',
+  },
+  headerContent: {
+    maxWidth: 500,
+    marginHorizontal: 'auto',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  headerTitle: {
+    fontWeight: '600',
   },
   email: {
-    marginTop: 8,
+    marginTop: 4,
     opacity: 0.7,
+    textAlign: 'center',
   },
   button: {
-    marginTop: 16,
+    marginTop: 'auto',
+    marginBottom: 16,
+    borderRadius: 8,
   },
   nameInput: {
     width: '80%',
     marginTop: 16,
   },
   displayName: {
-    marginTop: 16,
+    marginTop: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  card: {
+    marginBottom: 16,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  cardContent: {
+    alignItems: 'center',
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+  },
+  achievementsCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    marginBottom: 16,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  empty: {
+    textAlign: 'center',
+    color: '#666',
+    marginTop: 8,
+  },
+  content: {
+    flex: 1,
+    padding: 16,
+  },
+  avatarContainer: {
+    alignItems: 'center',
     marginBottom: 8,
+  },
+  avatarHint: {
+    marginTop: 8,
+    opacity: 0.7,
   },
 }) 
