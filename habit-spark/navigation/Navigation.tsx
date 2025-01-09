@@ -11,6 +11,7 @@ import { SignUpScreen } from '../screens/SignUpScreen'
 import { ProfileScreen } from '../screens/ProfileScreen'
 import { CreateGroupScreen } from '../screens/CreateGroupScreen'
 import { GroupDetailsScreen } from '../screens/GroupDetailsScreen'
+import { View, TouchableOpacity, Text } from 'react-native'
 
 const Tab = createBottomTabNavigator()
 const Stack = createNativeStackNavigator()
@@ -27,7 +28,7 @@ const AuthStack = () => (
 const MainTabs = () => {
   return (
     <Tab.Navigator
-      screenOptions={{
+      screenOptions={({ route }) => ({
         tabBarStyle: {
           backgroundColor: 'white',
           borderTopColor: '#FFF8E7',
@@ -38,7 +39,38 @@ const MainTabs = () => {
         tabBarActiveTintColor: '#8B4513',
         tabBarInactiveTintColor: '#D2691E',
         headerShown: false,
-      }}
+        tabBarItemStyle: {
+          borderRadius: 8,
+          marginHorizontal: 8,
+        },
+        tabBarButton: (props) => {
+          const isActive = props.accessibilityState?.selected
+          return (
+            <View style={{ flex: 1, padding: 4 }}>
+              <TouchableOpacity
+                {...props}
+                style={[
+                  {
+                    flex: 1,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: 8,
+                    paddingVertical: 8,
+                  },
+                  isActive && {
+                    backgroundColor: '#FFE4B5',
+                  }
+                ]}
+              >
+                <View style={{ alignItems: 'center' }}>
+                  {/* Stack the icon and text */}
+                  {props.children}
+                </View>
+              </TouchableOpacity>
+            </View>
+          )
+        },
+      })}
     >
       <Tab.Screen
         name="HomeTab"
@@ -46,8 +78,13 @@ const MainTabs = () => {
         options={{
           tabBarLabel: 'Habits',
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="home" size={size} color={color} />
+            <View style={{ alignItems: 'center' }}>
+              <MaterialCommunityIcons name="home" size={size} color={color} />
+            </View>
           ),
+          tabBarLabelStyle: {
+            transform: [{ translateY: 8 }],
+          },
         }}
       />
       <Tab.Screen
@@ -58,6 +95,9 @@ const MainTabs = () => {
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="account-group" size={size} color={color} />
           ),
+          tabBarLabelStyle: {
+            transform: [{ translateY: 8 }],
+          },
         }}
       />
       <Tab.Screen
@@ -68,6 +108,9 @@ const MainTabs = () => {
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="account" size={size} color={color} />
           ),
+          tabBarLabelStyle: {
+            transform: [{ translateY: 8 }],
+          },
         }}
       />
     </Tab.Navigator>

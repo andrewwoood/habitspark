@@ -137,11 +137,17 @@ export const ProfileScreen = ({ navigation }: NavigationProps) => {
         </Card.Content>
       </Card>
       <Button 
-        mode="outlined"
+        mode="contained"
         onPress={logout} 
-        style={styles.button}
-        textColor={theme.text.primary}
-        buttonColor={theme.surface}
+        style={[
+          styles.button,
+          { 
+            backgroundColor: '#DC3545',  // Same as delete button
+            marginTop: 'auto',
+            marginBottom: 16,
+          }
+        ]}
+        labelStyle={{ color: 'white' }}
       >
         Sign Out
       </Button>
@@ -184,9 +190,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   button: {
-    marginTop: 'auto',
-    marginBottom: 16,
-    borderRadius: 8,
+    borderRadius: 20,
+    minWidth: 100,
   },
   nameInput: {
     width: '80%',
