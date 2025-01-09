@@ -13,15 +13,22 @@ import { StreakMilestone } from '../components/StreakMilestone'
 import { StatisticsView } from '../components/StatisticsView'
 import { useFocusEffect } from '@react-navigation/native'
 import { useAppTheme } from '../theme/ThemeContext'
+import Toast from 'react-native-toast-message'
 
 export const HomeScreen = ({ navigation }: NavigationProps) => {
-  const { habits, loading, error, fetchHabits, toggleHabit, updateBestStreak, addHabit } = useHabitStore()
+  const { habits, loading, error, fetchHabits, toggleHabit, updateBestStreak, addHabit, updateHabit, deleteHabit } = useHabitStore()
   const [showMilestone, setShowMilestone] = React.useState(false)
   const lastStreak = React.useRef(0)
   const [timeframe, setTimeframe] = React.useState('6m')
   const { theme, isDark, toggleTheme } = useAppTheme()
   const [isModalVisible, setIsModalVisible] = React.useState(false)
   const [newHabitName, setNewHabitName] = React.useState('')
+  const [editModalVisible, setEditModalVisible] = React.useState(false)
+  const [editingHabit, setEditingHabit] = React.useState<Habit | null>(null)
+  const [editedHabitName, setEditedHabitName] = React.useState('')
+  const [isUpdating, setIsUpdating] = React.useState(false)
+  const [isDeleting, setIsDeleting] = React.useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false)
 
   // Fetch habits when screen comes into focus
   useFocusEffect(
@@ -184,44 +191,57 @@ export const HomeScreen = ({ navigation }: NavigationProps) => {
         }
       ]}>
         <Surface style={[styles.habitCard, { backgroundColor: theme.surface }]}>
-          <TouchableOpacity 
-            style={styles.habitItem}
-            onPress={() => handleHabitToggle(habit.id)}
-            onPressIn={handlePressIn}
-            onPressOut={handlePressOut}
-            activeOpacity={1}
-          >
-            <Animated.View style={[
-              styles.checkbox,
-              { borderColor: theme.primary },
-              isCompleted && { 
-                backgroundColor: theme.primary,
-                borderColor: theme.primary 
-              },
-              {
-                transform: [{
-                  scale: checkAnimation.interpolate({
-                    inputRange: [0, 0.5, 1],
-                    outputRange: [1, 1.2, 1]
-                  })
-                }]
-              }
-            ]}>
-              {isCompleted && (
-                <Animated.View style={{
-                  opacity: checkAnimation.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [1, 0]
-                  })
-                }}>
-                  <MaterialCommunityIcons name="check" size={16} color={theme.surface} />
-                </Animated.View>
-              )}
-            </Animated.View>
-            <Text style={[styles.habitName, { color: theme.text.primary }]}>
-              {habit.name}
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.habitItemContainer}>
+            <TouchableOpacity 
+              style={styles.habitItem}
+              onPress={() => handleHabitToggle(habit.id)}
+              onPressIn={handlePressIn}
+              onPressOut={handlePressOut}
+              activeOpacity={1}
+            >
+              <Animated.View style={[
+                styles.checkbox,
+                { borderColor: theme.primary },
+                isCompleted && { 
+                  backgroundColor: theme.primary,
+                  borderColor: theme.primary 
+                },
+                {
+                  transform: [{
+                    scale: checkAnimation.interpolate({
+                      inputRange: [0, 0.5, 1],
+                      outputRange: [1, 1.2, 1]
+                    })
+                  }]
+                }
+              ]}>
+                {isCompleted && (
+                  <Animated.View style={{
+                    opacity: checkAnimation.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [1, 0]
+                    })
+                  }}>
+                    <MaterialCommunityIcons name="check" size={16} color={theme.surface} />
+                  </Animated.View>
+                )}
+              </Animated.View>
+              <Text style={[styles.habitName, { color: theme.text.primary }]}>
+                {habit.name}
+              </Text>
+            </TouchableOpacity>
+            
+            <IconButton
+              icon="dots-vertical"
+              size={20}
+              iconColor={theme.text.secondary}
+              onPress={() => {
+                setEditingHabit(habit)
+                setEditedHabitName(habit.name)
+                setEditModalVisible(true)
+              }}
+            />
+          </View>
         </Surface>
       </Animated.View>
     )
@@ -245,6 +265,55 @@ export const HomeScreen = ({ navigation }: NavigationProps) => {
       hideModal()
     } catch (error) {
       console.error('Error creating habit:', error)
+    }
+  }
+
+  const handleUpdateHabit = async () => {
+    if (!editingHabit || !editedHabitName.trim()) return
+    
+    setIsUpdating(true)
+    try {
+      await updateHabit(editingHabit.id, { name: editedHabitName.trim() })
+      setEditModalVisible(false)
+      setEditingHabit(null)
+      setEditedHabitName('')
+      Toast.show({
+        type: 'success',
+        text1: 'Habit updated successfully'
+      })
+    } catch (error) {
+      console.error('Error updating habit:', error)
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to update habit'
+      })
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleDeleteHabit = async () => {
+    if (!editingHabit) return
+    
+    setIsDeleting(true)
+    try {
+      await deleteHabit(editingHabit.id)
+      setEditModalVisible(false)
+      setEditingHabit(null)
+      setEditedHabitName('')
+      setShowDeleteConfirm(false)
+      Toast.show({
+        type: 'success',
+        text1: 'Habit deleted successfully'
+      })
+    } catch (error) {
+      console.error('Error deleting habit:', error)
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to delete habit'
+      })
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -420,6 +489,124 @@ export const HomeScreen = ({ navigation }: NavigationProps) => {
                 labelStyle={{ color: 'white' }}
               >
                 Add Habit
+              </Button>
+            </View>
+          </View>
+        </Modal>
+      </Portal>
+
+      <Portal>
+        <Modal
+          visible={editModalVisible}
+          onDismiss={() => {
+            setEditModalVisible(false)
+            setEditingHabit(null)
+            setEditedHabitName('')
+          }}
+          contentContainerStyle={[
+            styles.modalContainer,
+            { backgroundColor: theme.background }
+          ]}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: theme.text.primary }]}>
+                Edit Habit
+              </Text>
+              <IconButton
+                icon="close"
+                size={24}
+                onPress={() => {
+                  setEditModalVisible(false)
+                  setEditingHabit(null)
+                  setEditedHabitName('')
+                }}
+                iconColor={theme.text.primary}
+              />
+            </View>
+            
+            <TextInput
+              mode="outlined"
+              placeholder="Enter habit name..."
+              value={editedHabitName}
+              onChangeText={setEditedHabitName}
+              style={styles.modalInput}
+              outlineColor="transparent"
+              activeOutlineColor={theme.primary}
+              textColor={theme.text.primary}
+            />
+
+            <View style={styles.modalActions}>
+              <Button
+                mode="text"
+                onPress={() => {
+                  setEditModalVisible(false)
+                  setEditingHabit(null)
+                  setEditedHabitName('')
+                }}
+                style={styles.modalButton}
+                labelStyle={{ color: theme.text.primary }}
+              >
+                Cancel
+              </Button>
+              <Button
+                mode="contained"
+                onPress={() => setShowDeleteConfirm(true)}
+                style={[styles.modalButton, { backgroundColor: '#DC3545' }]}
+                labelStyle={{ color: 'white' }}
+                loading={isDeleting}
+                disabled={isDeleting || isUpdating}
+              >
+                Delete
+              </Button>
+              <Button
+                mode="contained"
+                onPress={handleUpdateHabit}
+                style={[styles.modalButton, { backgroundColor: '#F4A460' }]}
+                labelStyle={{ color: 'white' }}
+                loading={isUpdating}
+                disabled={isDeleting || isUpdating}
+              >
+                Save
+              </Button>
+            </View>
+          </View>
+        </Modal>
+      </Portal>
+
+      <Portal>
+        <Modal
+          visible={showDeleteConfirm}
+          onDismiss={() => setShowDeleteConfirm(false)}
+          contentContainerStyle={[
+            styles.modalContainer,
+            { backgroundColor: theme.background }
+          ]}
+        >
+          <View style={styles.modalContent}>
+            <Text style={[styles.modalTitle, { color: theme.text.primary }]}>
+              Delete Habit
+            </Text>
+            <Text style={[styles.modalText, { color: theme.text.secondary }]}>
+              Are you sure you want to delete this habit? This action cannot be undone.
+            </Text>
+            <View style={styles.modalActions}>
+              <Button
+                mode="text"
+                onPress={() => setShowDeleteConfirm(false)}
+                style={styles.modalButton}
+                labelStyle={{ color: theme.text.primary }}
+              >
+                Cancel
+              </Button>
+              <Button
+                mode="contained"
+                onPress={handleDeleteHabit}
+                style={[styles.modalButton, { backgroundColor: '#DC3545' }]}
+                labelStyle={{ color: 'white' }}
+                loading={isDeleting}
+              >
+                Delete
               </Button>
             </View>
           </View>
@@ -638,5 +825,10 @@ const styles = StyleSheet.create({
   modalButton: {
     borderRadius: 20,
     minWidth: 100,
+  },
+  habitItemContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
 }) 

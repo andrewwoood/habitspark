@@ -26,6 +26,8 @@ interface HabitState {
   toggleHabit: (habitId: string, date: string) => Promise<void>
   updateBestStreak: (streak: number) => Promise<void>
   addHabit: (habit: { name: string, description: string, frequency: string }) => Promise<void>
+  updateHabit: (habitId: string, updates: { name: string }) => Promise<void>
+  deleteHabit: (habitId: string) => Promise<void>
 }
 
 export const useHabitStore = create<HabitState>((set, get) => ({
@@ -156,6 +158,56 @@ export const useHabitStore = create<HabitState>((set, get) => ({
       
       // Refresh habits list
       await get().fetchHabits()
+    } catch (error: any) {
+      set({ error: error.message })
+    } finally {
+      set({ loading: false })
+    }
+  },
+  updateHabit: async (habitId: string, updates: { name: string }) => {
+    try {
+      set({ loading: true, error: null })
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { error } = await supabase
+        .from('habits')
+        .update(updates)
+        .eq('id', habitId)
+        .eq('user_id', user.id)
+
+      if (error) throw error
+      
+      // Update local state
+      set(state => ({
+        habits: state.habits.map(h => 
+          h.id === habitId ? { ...h, ...updates } : h
+        )
+      }))
+    } catch (error: any) {
+      set({ error: error.message })
+    } finally {
+      set({ loading: false })
+    }
+  },
+  deleteHabit: async (habitId: string) => {
+    try {
+      set({ loading: true, error: null })
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { error } = await supabase
+        .from('habits')
+        .delete()
+        .eq('id', habitId)
+        .eq('user_id', user.id)
+
+      if (error) throw error
+      
+      // Update local state
+      set(state => ({
+        habits: state.habits.filter(h => h.id !== habitId)
+      }))
     } catch (error: any) {
       set({ error: error.message })
     } finally {
