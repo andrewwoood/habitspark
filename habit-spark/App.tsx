@@ -4,14 +4,16 @@ import { useAuthStore } from './store/authStore'
 import { Linking } from 'react-native'
 import { useGroupStore } from './store/groupStore'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { ThemeProvider } from './theme/ThemeContext'
+import { NavigationContainer } from '@react-navigation/native'
+import { Navigation } from './navigation/Navigation'
 
-function App() {
+export default function App() {
   const setUser = useAuthStore(state => state.setUser)
   
   useEffect(() => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, session?.user)
       if (session?.user) {
         setUser(session.user)
       }
@@ -22,7 +24,13 @@ function App() {
     }
   }, [])
   
-  // ... rest of your App component
+  return (
+    <ThemeProvider>
+      <NavigationContainer>
+        <Navigation />
+      </NavigationContainer>
+    </ThemeProvider>
+  )
 } 
 
 // In your navigation setup

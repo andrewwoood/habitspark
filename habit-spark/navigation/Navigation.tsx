@@ -1,22 +1,21 @@
 import * as React from 'react'
-import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
+import { createNativeStackNavigator } from '@react-navigation/native-stack'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useAuthStore } from '../store/authStore'
-import {
-  LoginScreen,
-  SignUpScreen,
-  HomeScreen,
-  GroupScreen,
-  ProfileScreen,
-  CreateHabitScreen,
-  CreateGroupScreen,
-  GroupDetailsScreen
-} from '../screens'
+import { HomeScreen } from '../screens/HomeScreen'
+import { CreateHabitScreen } from '../screens/CreateHabitScreen'
+import { GroupScreen } from '../screens/GroupScreen'
+import { LoginScreen } from '../screens/LoginScreen'
+import { SignUpScreen } from '../screens/SignUpScreen'
+import { ProfileScreen } from '../screens/ProfileScreen'
+import { CreateGroupScreen } from '../screens/CreateGroupScreen'
+import { GroupDetailsScreen } from '../screens/GroupDetailsScreen'
 
-const Stack = createNativeStackNavigator()
 const Tab = createBottomTabNavigator()
+const Stack = createNativeStackNavigator()
 
-// Import your screens here
+// Auth stack for non-authenticated users
 const AuthStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="Login" component={LoginScreen} />
@@ -24,29 +23,80 @@ const AuthStack = () => (
   </Stack.Navigator>
 )
 
-const MainTabs = () => (
-  <Tab.Navigator>
-    <Tab.Screen name="Home" component={HomeScreen} />
-    <Tab.Screen name="Groups" component={GroupScreen} />
-    <Tab.Screen name="Profile" component={ProfileScreen} />
-  </Tab.Navigator>
-)
+// Main tabs with our new design
+const MainTabs = () => {
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        tabBarStyle: {
+          backgroundColor: 'white',
+          borderTopColor: '#FFF8E7',
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
+        },
+        tabBarActiveTintColor: '#8B4513',
+        tabBarInactiveTintColor: '#D2691E',
+        headerShown: false,
+      }}
+    >
+      <Tab.Screen
+        name="HomeTab"
+        component={HomeScreen}
+        options={{
+          tabBarLabel: 'Calendar',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="calendar" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Goals"
+        component={GroupScreen}
+        options={{
+          tabBarLabel: 'Target',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="target" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Achievements"
+        component={GroupScreen} // We'll create AchievementsScreen later
+        options={{
+          tabBarLabel: 'Trophy',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="trophy" size={size} color={color} />
+          ),
+        }}
+      />
+    </Tab.Navigator>
+  )
+}
 
-const MainStack = createNativeStackNavigator()
-
-const MainStackScreen = () => (
-  <MainStack.Navigator>
-    <MainStack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
-    <MainStack.Screen name="CreateHabit" component={CreateHabitScreen} />
-    <MainStack.Screen name="CreateGroup" component={CreateGroupScreen} />
-    <MainStack.Screen name="GroupDetails" component={GroupDetailsScreen} />
-  </MainStack.Navigator>
+// Main stack for authenticated users
+const MainStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="MainTabs" component={MainTabs} />
+    <Stack.Screen 
+      name="CreateHabit" 
+      component={CreateHabitScreen}
+      options={{
+        headerShown: true,
+        headerTitle: 'Create Habit',
+        headerStyle: {
+          backgroundColor: '#FFF8E7',
+        },
+        headerTintColor: '#8B4513',
+      }}
+    />
+  </Stack.Navigator>
 )
 
 export const Navigation = () => {
   const user = useAuthStore((state) => state.user)
-
+  
   return (
-    <>{user ? <MainStackScreen /> : <AuthStack />}</>
+    <>{user ? <MainStack /> : <AuthStack />}</>
   )
 } 

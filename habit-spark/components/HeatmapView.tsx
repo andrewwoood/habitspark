@@ -1,29 +1,44 @@
 import React from 'react'
 import { View, StyleSheet, ScrollView } from 'react-native'
-import { Text, Surface } from 'react-native-paper'
+import { Text } from 'react-native-paper'
 import type { HabitStatistics } from '../utils/statisticsCalculator'
+import type { Theme } from '../theme/colors'
 
 interface HeatmapViewProps {
   dailyCompletions: HabitStatistics['dailyCompletions']
+  timeframe: '1m' | '3m' | '6m'
+  theme: Theme
+  isDark: boolean
 }
 
-export const HeatmapView = ({ dailyCompletions }: HeatmapViewProps) => {
+export const HeatmapView = ({ dailyCompletions, timeframe, theme, isDark }: HeatmapViewProps) => {
   const getDates = () => {
     const weeks = []
-    const days = ['', 'Mon', '', 'Wed', '', 'Fri', '']
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
     const months = []
     
-    // Get current year dates
     const now = new Date()
-    const year = now.getFullYear()
-    const startDate = new Date(year, 0, 1)
+    const startDate = new Date()
     
-    // Add padding for start of year
-    const dates = Array(startDate.getDay()).fill(null)
+    // Calculate start date based on timeframe
+    switch (timeframe) {
+      case '1m':
+        startDate.setMonth(now.getMonth() - 1)
+        break
+      case '3m':
+        startDate.setMonth(now.getMonth() - 3)
+        break
+      case '6m':
+        startDate.setMonth(now.getMonth() - 6)
+        break
+    }
     
-    // Add all dates for the year
+    startDate.setDate(1) // Start from first day of month
+    const dates = []
+    
+    // Add all dates from start date to now
     const currentDate = new Date(startDate)
-    while (currentDate.getFullYear() === year) {
+    while (currentDate <= now) {
       dates.push(currentDate.toISOString().split('T')[0])
       
       if (currentDate.getDate() === 1) {
@@ -41,128 +56,86 @@ export const HeatmapView = ({ dailyCompletions }: HeatmapViewProps) => {
       weeks.push(dates.slice(i, i + 7))
     }
     
-    return { weeks, days, months, year }
+    return { weeks, days, months }
   }
 
   const getColorForPercentage = (date: string | null) => {
     if (!date) return 'transparent'
-    if (new Date(date) > new Date()) return '#ebedf0' // Keep grey for future/empty
+    if (new Date(date) > new Date()) return theme.surface // Future dates
     
     const completion = dailyCompletions.find(d => d.date === date)
     if (!completion || completion.percentage === 0) {
-      return '#ebedf0'
+      return isDark ? '#2D2D2D' : '#F5F5F5' // Light gray in light mode, darker gray in dark mode
     }
     
-    // Purple theme colors (light to dark)
-    if (completion.percentage <= 25) return '#E8DEF8'  // Lightest purple
-    if (completion.percentage <= 50) return '#B4A0E5'  // Light purple
-    if (completion.percentage <= 75) return '#8B6BC7'  // Medium purple
-    return '#6750A4'  // Dark purple
+    // Theme-aware colors (light to dark)
+    if (completion.percentage <= 25) return theme.primary + '40'
+    if (completion.percentage <= 50) return theme.primary + '80'
+    if (completion.percentage <= 75) return theme.primary + 'BF'
+    return theme.primary
   }
 
-  const { weeks, days, months, year } = getDates()
+  const { weeks, days, months } = getDates()
 
   return (
-    <Surface style={styles.outerContainer}>
-      <View style={styles.headerContainer}>
-        <Text style={styles.yearLabel}>{year}</Text>
-        <View style={styles.monthLabels}>
-          {months.map(({ name }, i) => (
-            <Text key={i} style={styles.monthLabel}>
-              {name}
-            </Text>
-          ))}
-        </View>
+    <View style={styles.container}>
+      <View style={styles.dayLabels}>
+        {days.map((day, index) => (
+          <Text 
+            key={index} 
+            style={[styles.dayLabel, { color: theme.text.secondary }]}
+          >
+            {day}
+          </Text>
+        ))}
       </View>
 
-      <View style={styles.gridContainer}>
-        <View style={styles.dayLabels}>
-          {days.map((day, index) => (
-            <Text key={index} style={styles.dayLabel}>
-              {day}
-            </Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <View style={styles.grid}>
+          {weeks.map((week, weekIndex) => (
+            <View key={weekIndex} style={styles.week}>
+              {week.map((date, dateIndex) => (
+                <View
+                  key={`${weekIndex}-${dateIndex}`}
+                  style={[
+                    styles.day,
+                    { backgroundColor: getColorForPercentage(date) }
+                  ]}
+                />
+              ))}
+            </View>
           ))}
         </View>
-
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.container}>
-            {weeks.map((week, weekIndex) => (
-              <View key={weekIndex} style={styles.week}>
-                {week.map((date, dateIndex) => (
-                  <View
-                    key={`${weekIndex}-${dateIndex}`}
-                    style={[
-                      styles.day,
-                      { backgroundColor: getColorForPercentage(date) }
-                    ]}
-                  />
-                ))}
-              </View>
-            ))}
-          </View>
-        </ScrollView>
-      </View>
-    </Surface>
+      </ScrollView>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
-  outerContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    marginVertical: 8,
-  },
-  headerContainer: {
-    marginBottom: 12,
-  },
-  yearLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#24292f',
-    marginBottom: 8,
-  },
-  monthLabels: {
-    flexDirection: 'row',
-    paddingLeft: 48,
-  },
-  monthLabel: {
-    fontSize: 11,
-    color: '#57606a',
-    fontWeight: '500',
-    width: 28,
-    marginRight: 24,
-  },
-  gridContainer: {
+  container: {
     flexDirection: 'row',
   },
   dayLabels: {
-    width: 40,
     marginRight: 8,
   },
   dayLabel: {
-    fontSize: 11,
-    color: '#57606a',
-    height: 13,
-    textAlign: 'right',
-    fontWeight: '500',
+    fontSize: 12,
+    color: '#8B4513',
+    height: 15,
+    width: 30,
+    textAlign: 'left',
   },
-  container: {
+  grid: {
     flexDirection: 'row',
-    gap: 2,
+    gap: 4,
   },
   week: {
     flexDirection: 'column',
-    gap: 2,
+    gap: 4,
   },
   day: {
-    width: 10,
-    height: 10,
+    width: 12,
+    height: 12,
     borderRadius: 2,
   },
 }) 
