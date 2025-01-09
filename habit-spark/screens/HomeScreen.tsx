@@ -281,16 +281,17 @@ export const HomeScreen = ({ navigation }: NavigationProps) => {
                   { value: '3m', label: '3M' },
                   { value: '6m', label: '6M' },
                 ]}
-                style={[styles.segmentedButtons, { backgroundColor: theme.background }]}
+                style={[styles.segmentedButtons]}
                 theme={{
                   colors: {
                     primary: theme.primary,
-                    secondaryContainer: theme.background,
+                    secondaryContainer: '#FFE4B5',
                     onSecondaryContainer: theme.text.primary,
                     onSurface: theme.text.secondary,
-                    outline: theme.text.secondary + '40',
+                    outline: 'transparent',
+                    surface: '#FFF3E0',
                   },
-                  roundness: 8,
+                  roundness: 20,
                 }}
                 density="medium"
               />
@@ -428,9 +429,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   segmentedButtons: {
-    borderRadius: 8,
+    borderRadius: 20,
     minHeight: 36,
     overflow: 'hidden',
+    backgroundColor: '#FFF3E0',
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
   },
   dateRange: {
     fontSize: 12,
