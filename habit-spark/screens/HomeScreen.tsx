@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useEffect, useCallback } from 'react'
 import { View, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Animated } from 'react-native'
-import { Text, List, FAB, ActivityIndicator, Surface, SegmentedButtons, Button, IconButton } from 'react-native-paper'
+import { Text, List, FAB, ActivityIndicator, Surface, SegmentedButtons, Button, IconButton, TextInput, Modal, Portal } from 'react-native-paper'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useHabitStore } from '../store/habitStore.tsx'
 import { HeatmapView } from '../components/HeatmapView'
@@ -15,11 +15,13 @@ import { useFocusEffect } from '@react-navigation/native'
 import { useAppTheme } from '../theme/ThemeContext'
 
 export const HomeScreen = ({ navigation }: NavigationProps) => {
-  const { habits, loading, error, fetchHabits, toggleHabit, updateBestStreak } = useHabitStore()
+  const { habits, loading, error, fetchHabits, toggleHabit, updateBestStreak, addHabit } = useHabitStore()
   const [showMilestone, setShowMilestone] = React.useState(false)
   const lastStreak = React.useRef(0)
   const [timeframe, setTimeframe] = React.useState('6m')
   const { theme, isDark, toggleTheme } = useAppTheme()
+  const [isModalVisible, setIsModalVisible] = React.useState(false)
+  const [newHabitName, setNewHabitName] = React.useState('')
 
   // Fetch habits when screen comes into focus
   useFocusEffect(
@@ -225,6 +227,27 @@ export const HomeScreen = ({ navigation }: NavigationProps) => {
     )
   }
 
+  const showModal = () => setIsModalVisible(true)
+  const hideModal = () => {
+    setIsModalVisible(false)
+    setNewHabitName('')
+  }
+
+  const handleCreateHabit = async () => {
+    if (!newHabitName.trim()) return
+    
+    try {
+      await addHabit({
+        name: newHabitName.trim(),
+        description: '',
+        frequency: 'daily',
+      })
+      hideModal()
+    } catch (error) {
+      console.error('Error creating habit:', error)
+    }
+  }
+
   if (loading && !habits.length) {
     return (
       <View style={styles.centered}>
@@ -315,9 +338,11 @@ export const HomeScreen = ({ navigation }: NavigationProps) => {
             <Button 
               mode="contained"
               icon="plus"
-              onPress={() => navigation.navigate('CreateHabit')}
-              style={[styles.addButton, { backgroundColor: theme.background }]}
-              labelStyle={[styles.addButtonLabel, { color: theme.text.primary }]}
+              onPress={showModal}
+              style={[styles.addButton]}
+              labelStyle={[styles.addButtonLabel]}
+              buttonColor="#FFE4B5"
+              textColor={theme.text.primary}
             >
               Add Habit
             </Button>
@@ -342,6 +367,64 @@ export const HomeScreen = ({ navigation }: NavigationProps) => {
           </ScrollView>
         </View>
       </View>
+
+      <Portal>
+        <Modal
+          visible={isModalVisible}
+          onDismiss={hideModal}
+          contentContainerStyle={[
+            styles.modalContainer,
+            { backgroundColor: theme.background }
+          ]}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text 
+                style={[styles.modalTitle, { color: theme.text.primary }]}
+              >
+                Add New Habit
+              </Text>
+              <IconButton
+                icon="close"
+                size={24}
+                onPress={hideModal}
+                iconColor={theme.text.primary}
+              />
+            </View>
+            
+            <TextInput
+              mode="outlined"
+              placeholder="Enter habit name..."
+              value={newHabitName}
+              onChangeText={setNewHabitName}
+              style={styles.modalInput}
+              outlineColor="transparent"
+              activeOutlineColor={theme.primary}
+              textColor={theme.text.primary}
+              onSubmitEditing={handleCreateHabit}
+            />
+
+            <View style={styles.modalActions}>
+              <Button
+                mode="text"
+                onPress={hideModal}
+                style={styles.modalButton}
+                labelStyle={{ color: theme.text.primary }}
+              >
+                Cancel
+              </Button>
+              <Button
+                mode="contained"
+                onPress={handleCreateHabit}
+                style={[styles.modalButton, { backgroundColor: '#F4A460' }]}
+                labelStyle={{ color: 'white' }}
+              >
+                Add Habit
+              </Button>
+            </View>
+          </View>
+        </Modal>
+      </Portal>
     </SafeAreaView>
   )
 }
@@ -451,9 +534,16 @@ const styles = StyleSheet.create({
   },
   addButton: {
     borderRadius: 20,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
   },
   addButtonLabel: {
     fontSize: 14,
+    fontWeight: '600',
+    paddingHorizontal: 8,
   },
   habitsList: {
     flex: 1,
@@ -516,5 +606,37 @@ const styles = StyleSheet.create({
   },
   habitCardContainer: {
     marginVertical: 1,
+  },
+  modalContainer: {
+    margin: 20,
+    borderRadius: 12,
+    padding: 20,
+  },
+  modalContent: {
+    width: '100%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+  },
+  modalInput: {
+    backgroundColor: 'white',
+    marginBottom: 20,
+    borderRadius: 8,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+  },
+  modalButton: {
+    borderRadius: 20,
+    minWidth: 100,
   },
 }) 

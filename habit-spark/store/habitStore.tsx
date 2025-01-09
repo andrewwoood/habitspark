@@ -25,6 +25,7 @@ interface HabitState {
   fetchHabits: () => Promise<void>
   toggleHabit: (habitId: string, date: string) => Promise<void>
   updateBestStreak: (streak: number) => Promise<void>
+  addHabit: (habit: { name: string, description: string, frequency: string }) => Promise<void>
 }
 
 export const useHabitStore = create<HabitState>((set, get) => ({
@@ -132,6 +133,33 @@ export const useHabitStore = create<HabitState>((set, get) => ({
       set({ bestStreak: streak })
     } catch (error: any) {
       set({ error: error.message })
+    }
+  },
+  addHabit: async (habit) => {
+    try {
+      set({ loading: true, error: null })
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data, error } = await supabase
+        .from('habits')
+        .insert([
+          {
+            ...habit,
+            user_id: user.id,
+            completed_dates: [],
+          }
+        ])
+        .select()
+
+      if (error) throw error
+      
+      // Refresh habits list
+      await get().fetchHabits()
+    } catch (error: any) {
+      set({ error: error.message })
+    } finally {
+      set({ loading: false })
     }
   },
 })) 
