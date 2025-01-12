@@ -1,20 +1,28 @@
 import * as React from 'react'
-import { View, StyleSheet, ScrollView, SafeAreaView, ActivityIndicator } from 'react-native'
+import { View, StyleSheet, ScrollView, SafeAreaView, ActivityIndicator, Animated, TouchableOpacity } from 'react-native'
 import { Text, Button, Surface, IconButton, Portal, Modal, TextInput } from 'react-native-paper'
 import { useGroupStore } from '../store/groupStore'
 import type { NavigationProps } from '../types/navigation'
 import { useAppTheme } from '../theme/ThemeContext'
 
 export const GroupScreen = ({ navigation }: NavigationProps) => {
-  const { groups, loading, error, fetchGroups, createGroup } = useGroupStore()
+  const { groups, loading, error, fetchGroups, createGroup, joinGroup } = useGroupStore()
   const { theme } = useAppTheme()
   const [isModalVisible, setIsModalVisible] = React.useState(false)
   const [newGroupName, setNewGroupName] = React.useState('')
   const [isCreating, setIsCreating] = React.useState(false)
+  const [joinDialogVisible, setJoinDialogVisible] = React.useState(false)
+  const [joinCode, setJoinCode] = React.useState('')
+  const [isJoining, setIsJoining] = React.useState(false)
+  
+  const cardAnimationsMap = React.useRef(new Map()).current
 
-  React.useEffect(() => {
-    fetchGroups()
-  }, [])
+  const getCardAnimationForGroup = (groupId: string) => {
+    if (!cardAnimationsMap.has(groupId)) {
+      cardAnimationsMap.set(groupId, new Animated.Value(1))
+    }
+    return cardAnimationsMap.get(groupId)
+  }
 
   const handleCreateGroup = async () => {
     if (!newGroupName.trim()) return
@@ -30,6 +38,93 @@ export const GroupScreen = ({ navigation }: NavigationProps) => {
       setIsCreating(false)
     }
   }
+
+  const handleJoinGroup = async () => {
+    if (!joinCode.trim()) return
+    
+    setIsJoining(true)
+    try {
+      await joinGroup(joinCode.trim().toUpperCase())
+      setJoinDialogVisible(false)
+      setJoinCode('')
+    } catch (error) {
+      console.error('Error joining group:', error)
+    } finally {
+      setIsJoining(false)
+    }
+  }
+
+  const renderGroupCard = (group: Group) => {
+    const cardAnimation = getCardAnimationForGroup(group.id)
+    
+    const handlePressIn = () => {
+      Animated.spring(cardAnimation, {
+        toValue: 0.98,
+        useNativeDriver: true,
+      }).start()
+    }
+
+    const handlePressOut = () => {
+      Animated.spring(cardAnimation, {
+        toValue: 1,
+        useNativeDriver: true,
+      }).start()
+    }
+
+    return (
+      <Animated.View 
+        key={group.id}
+        style={[
+          styles.groupCardContainer,
+          { transform: [{ scale: cardAnimation }] }
+        ]}
+      >
+        <TouchableOpacity
+          onPress={() => navigation.navigate('GroupDetails', { groupId: group.id })}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          activeOpacity={1}
+        >
+          <Surface style={[styles.groupCard, { backgroundColor: theme.surface }]}>
+            <View style={styles.groupContent}>
+              <View style={styles.groupInfo}>
+                <Text style={[styles.groupName, { color: theme.text.primary }]}>
+                  {group.name}
+                </Text>
+                <View style={styles.groupMeta}>
+                  <Text style={[styles.groupCode, { backgroundColor: '#F0F0F0', color: '#666' }]}>
+                    {group.code}
+                  </Text>
+                  <View style={styles.memberCount}>
+                    <IconButton icon="account-group" size={16} />
+                    <Text style={{ color: theme.text.secondary }}>{group.members.length}</Text>
+                  </View>
+                </View>
+              </View>
+              <View style={styles.groupStats}>
+                <View style={styles.completionRate}>
+                  <Text style={[styles.completionValue, { color: '#8B4513' }]}>
+                    {group.completion_rate || 0}%
+                  </Text>
+                  <Text style={[styles.completionLabel, { color: '#D2691E' }]}>
+                    Completion
+                  </Text>
+                </View>
+                <IconButton 
+                  icon="chevron-right"
+                  onPress={() => navigation.navigate('GroupDetails', { groupId: group.id })}
+                />
+              </View>
+            </View>
+          </Surface>
+        </TouchableOpacity>
+      </Animated.View>
+    )
+  }
+
+  React.useEffect(() => {
+    fetchGroups()
+  }, [])
 
   if (loading && !groups.length) {
     return (
@@ -48,14 +143,27 @@ export const GroupScreen = ({ navigation }: NavigationProps) => {
           </Text>
         </View>
 
-        <Button
-          mode="contained"
-          onPress={() => setIsModalVisible(true)}
-          style={[styles.createButton]}
-          icon="plus"
-        >
-          Create New Group
-        </Button>
+        <View style={styles.buttonContainer}>
+          <Button
+            mode="contained"
+            onPress={() => setIsModalVisible(true)}
+            style={[styles.createButton]}
+            icon="plus"
+            labelStyle={{ fontSize: 16 }}
+            buttonColor="#F4A460"
+          >
+            Create New Group
+          </Button>
+          <Button
+            mode="outlined"
+            onPress={() => setJoinDialogVisible(true)}
+            style={styles.joinButton}
+            icon="account-group"
+            textColor="#F4A460"
+          >
+            Join Group
+          </Button>
+        </View>
 
         <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>
           Your Groups
@@ -68,51 +176,7 @@ export const GroupScreen = ({ navigation }: NavigationProps) => {
         )}
 
         <ScrollView style={styles.groupsList}>
-          {groups.length === 0 ? (
-            <Surface style={[styles.emptyCard, { backgroundColor: theme.surface }]}>
-              <Text style={[styles.emptyText, { color: theme.text.secondary }]}>
-                Create or join your first group
-              </Text>
-            </Surface>
-          ) : (
-            groups.map(group => (
-              <Surface 
-                key={group.id} 
-                style={[styles.groupCard, { backgroundColor: theme.surface }]}
-              >
-                <View style={styles.groupContent}>
-                  <View style={styles.groupInfo}>
-                    <Text style={[styles.groupName, { color: theme.text.primary }]}>
-                      {group.name}
-                    </Text>
-                    <View style={styles.groupMeta}>
-                      <Text style={[styles.groupCode, { backgroundColor: theme.primary + '20' }]}>
-                        {group.code}
-                      </Text>
-                      <View style={styles.memberCount}>
-                        <IconButton icon="account-group" size={16} />
-                        <Text style={{ color: theme.text.secondary }}>{group.members.length}</Text>
-                      </View>
-                    </View>
-                  </View>
-                  <View style={styles.groupStats}>
-                    <View style={styles.completionRate}>
-                      <Text style={[styles.completionValue, { color: theme.text.primary }]}>
-                        {group.completion_rate || 0}%
-                      </Text>
-                      <Text style={[styles.completionLabel, { color: theme.text.secondary }]}>
-                        Completion
-                      </Text>
-                    </View>
-                    <IconButton 
-                      icon="chevron-right"
-                      onPress={() => navigation.navigate('GroupDetails', { groupId: group.id })}
-                    />
-                  </View>
-                </View>
-              </Surface>
-            ))
-          )}
+          {groups.map(group => renderGroupCard(group))}
         </ScrollView>
 
         <Portal>
@@ -182,6 +246,74 @@ export const GroupScreen = ({ navigation }: NavigationProps) => {
             </View>
           </Modal>
         </Portal>
+
+        <Portal>
+          <Modal
+            visible={joinDialogVisible}
+            onDismiss={() => {
+              setJoinDialogVisible(false)
+              setJoinCode('')
+            }}
+            contentContainerStyle={[
+              styles.modalContainer,
+              { backgroundColor: theme.background }
+            ]}
+          >
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text 
+                  style={[styles.modalTitle, { color: theme.text.primary }]}
+                >
+                  Join Group
+                </Text>
+                <IconButton
+                  icon="close"
+                  size={24}
+                  onPress={() => {
+                    setJoinDialogVisible(false)
+                    setJoinCode('')
+                  }}
+                  iconColor={theme.text.primary}
+                />
+              </View>
+              
+              <TextInput
+                mode="outlined"
+                placeholder="Enter group code..."
+                value={joinCode}
+                onChangeText={setJoinCode}
+                style={styles.modalInput}
+                outlineColor="transparent"
+                activeOutlineColor={theme.primary}
+                textColor={theme.text.primary}
+                onSubmitEditing={handleJoinGroup}
+              />
+
+              <View style={styles.modalActions}>
+                <Button
+                  mode="text"
+                  onPress={() => {
+                    setJoinDialogVisible(false)
+                    setJoinCode('')
+                  }}
+                  style={styles.modalButton}
+                  labelStyle={{ color: theme.text.primary }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  mode="contained"
+                  onPress={handleJoinGroup}
+                  style={[styles.modalButton]}
+                  loading={isJoining}
+                  disabled={!joinCode.trim() || isJoining}
+                >
+                  Join Group
+                </Button>
+              </View>
+            </View>
+          </Modal>
+        </Portal>
       </View>
     </SafeAreaView>
   )
@@ -202,8 +334,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   createButton: {
-    marginBottom: 24,
+    marginBottom: 0,
     borderRadius: 8,
+    height: 48,
   },
   sectionTitle: {
     fontSize: 16,
@@ -217,6 +350,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderRadius: 12,
     elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   groupContent: {
     padding: 16,
@@ -239,10 +376,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
+    backgroundColor: '#F0F0F0',
+    color: '#666',
   },
   memberCount: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 4,
   },
   centered: {
     flex: 1,
@@ -275,9 +415,11 @@ const styles = StyleSheet.create({
   completionValue: {
     fontSize: 16,
     fontWeight: '600',
+    color: '#8B4513',
   },
   completionLabel: {
     fontSize: 12,
+    color: '#D2691E',
   },
   modalContainer: {
     margin: 20,
@@ -310,5 +452,18 @@ const styles = StyleSheet.create({
   modalButton: {
     borderRadius: 20,
     minWidth: 100,
+  },
+  buttonContainer: {
+    gap: 12,
+    marginBottom: 24,
+  },
+  joinButton: {
+    borderRadius: 8,
+    height: 48,
+    borderColor: '#F4A460',
+    backgroundColor: 'white',
+  },
+  groupCardContainer: {
+    marginVertical: 1,
   },
 }) 
