@@ -430,7 +430,11 @@ export const HomeScreen = ({ navigation }: NavigationProps) => {
               </Surface>
             ) : (
               <View style={styles.habitsGrid}>
-                {habits.map(habit => renderHabitItem(habit))}
+                {habits.map(habit => (
+                  <View key={habit.id}>
+                    {renderHabitItem(habit)}
+                  </View>
+                ))}
               </View>
             )}
           </ScrollView>
