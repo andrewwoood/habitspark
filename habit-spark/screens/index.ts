@@ -16,4 +16,6 @@ export {
   CreateHabitScreen,
   CreateGroupScreen,
   GroupDetailsScreen,
-} 
+}
+
+export * from './GroupDetailsScreen' 

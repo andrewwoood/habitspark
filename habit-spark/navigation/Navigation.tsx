@@ -121,16 +121,14 @@ const MainTabs = () => {
 const MainStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="MainTabs" component={MainTabs} />
+    <Stack.Screen name="CreateHabit" component={CreateHabitScreen} />
+    <Stack.Screen name="CreateGroup" component={CreateGroupScreen} />
     <Stack.Screen 
-      name="CreateHabit" 
-      component={CreateHabitScreen}
+      name="GroupDetails" 
+      component={GroupDetailsScreen}
       options={{
         headerShown: true,
-        headerTitle: 'Create Habit',
-        headerStyle: {
-          backgroundColor: '#FFF8E7',
-        },
-        headerTintColor: '#8B4513',
+        headerTitle: 'Group Details',
       }}
     />
   </Stack.Navigator>
