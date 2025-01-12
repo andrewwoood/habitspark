@@ -7,7 +7,6 @@ export type RootStackParamList = {
   Groups: undefined
   Profile: undefined
   CreateHabit: undefined
-  CreateGroup: undefined
   GroupDetails: { groupId: string }
   MainTabs: undefined
 }

@@ -9,7 +9,6 @@ import { GroupScreen } from '../screens/GroupScreen'
 import { LoginScreen } from '../screens/LoginScreen'
 import { SignUpScreen } from '../screens/SignUpScreen'
 import { ProfileScreen } from '../screens/ProfileScreen'
-import { CreateGroupScreen } from '../screens/CreateGroupScreen'
 import { GroupDetailsScreen } from '../screens/GroupDetailsScreen'
 import { View, TouchableOpacity, Text } from 'react-native'
 
@@ -122,7 +121,6 @@ const MainStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="MainTabs" component={MainTabs} />
     <Stack.Screen name="CreateHabit" component={CreateHabitScreen} />
-    <Stack.Screen name="CreateGroup" component={CreateGroupScreen} />
     <Stack.Screen 
       name="GroupDetails" 
       component={GroupDetailsScreen}

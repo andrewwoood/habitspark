@@ -4,7 +4,6 @@ import { HomeScreen } from './HomeScreen'
 import { GroupScreen } from './GroupScreen'
 import { ProfileScreen } from './ProfileScreen'
 import { CreateHabitScreen } from './CreateHabitScreen'
-import { CreateGroupScreen } from './CreateGroupScreen'
 import { GroupDetailsScreen } from './GroupDetailsScreen'
 
 export {
@@ -14,7 +13,6 @@ export {
   GroupScreen,
   ProfileScreen,
   CreateHabitScreen,
-  CreateGroupScreen,
   GroupDetailsScreen,
 }
 
