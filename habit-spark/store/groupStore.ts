@@ -9,6 +9,7 @@ export interface Group {
   created_by: string
   created_at: string
   members: string[]
+  completion_rate?: number // Last 7 days completion rate
 }
 
 interface GroupState {
@@ -123,14 +124,30 @@ export const useGroupStore = create<GroupState>((set, get) => ({
       set({ loading: true, error: null })
       const userId = (await supabase.auth.getUser()).data.user?.id
 
+      console.log('Fetching groups...')
+
       const { data: groups, error } = await supabase
         .from('groups')
         .select()
         .contains('members', [userId])
 
       if (error) throw error
-      set({ groups: groups || [] })
+
+      console.log('Groups fetched:', groups)
+
+      // Fetch completion rates for each group
+      const groupsWithStats = await Promise.all(
+        groups.map(async (group) => {
+          const completion_rate = await fetchGroupCompletionRates(group.id)
+          console.log(`Group ${group.id} completion rate:`, completion_rate)
+          return { ...group, completion_rate }
+        })
+      )
+
+      console.log('Groups with stats:', groupsWithStats)
+      set({ groups: groupsWithStats || [] })
     } catch (error: any) {
+      console.error('Error in fetchGroups:', error)
       set({ error: error.message })
     } finally {
       set({ loading: false })
@@ -275,3 +292,26 @@ export const useGroupStore = create<GroupState>((set, get) => ({
     }
   }
 })) 
+
+// Add this function to fetch last 7 days completion rate
+const fetchGroupCompletionRates = async (groupId: string) => {
+  const { data, error } = await supabase
+    .rpc('get_group_completion_rate', {
+      p_group_id: groupId,
+      p_days: 7
+    })
+  
+  // Add debug logging
+  console.log('Raw completion rate response:', data)
+  
+  if (error) {
+    console.error('Completion rate error:', error)
+    throw error
+  }
+  
+  // Check the structure of the data
+  console.log('Completion rate data type:', typeof data)
+  console.log('Completion rate data:', data)
+  
+  return data?.[0]?.completion_rate || 0  // Note: Changed this line
+} 

@@ -104,7 +104,7 @@ export const GroupScreen = ({ navigation }: NavigationProps) => {
               <View style={styles.groupStats}>
                 <View style={styles.completionRate}>
                   <Text style={[styles.completionValue, { color: '#8B4513' }]}>
-                    {group.completion_rate || 0}%
+                    {Math.round(group.completion_rate || 0)}%
                   </Text>
                   <Text style={[styles.completionLabel, { color: '#D2691E' }]}>
                     Completion
