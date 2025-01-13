@@ -96,7 +96,7 @@ export const GroupScreen = ({ navigation }: NavigationProps) => {
                     {group.code}
                   </Text>
                   <View style={styles.memberCount}>
-                    <IconButton icon="account-group" size={16} />
+                    <IconButton icon="account-group" size={16} iconColor={theme.text.secondary} />
                     <Text style={{ color: theme.text.secondary }}>{group.members.length}</Text>
                   </View>
                 </View>
