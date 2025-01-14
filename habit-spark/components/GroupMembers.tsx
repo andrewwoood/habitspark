@@ -1,10 +1,9 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { View, StyleSheet } from 'react-native'
 import { Text, Surface, List, Avatar, IconButton } from 'react-native-paper'
 import { FlashList } from '@shopify/flash-list'
 import { useAppTheme } from '../theme/ThemeContext'
 import { MemberSkeleton } from './MemberSkeleton'
-import { haptics } from '../utils/haptics'
 
 interface MemberProfile {
   display_name: string
@@ -57,7 +56,6 @@ const MemberItem = React.memo(({
             icon="account-remove"
             iconColor={theme.text.primary}
             onPress={() => {
-              haptics.warning()
               onKickMember(memberId)
             }}
             disabled={kickingMemberId === memberId}
@@ -81,6 +79,8 @@ export const GroupMembers: React.FC<GroupMembersProps> = ({
 }) => {
   const { theme } = useAppTheme()
 
+  const [error, setError] = useState<string | null>(null)
+
   const renderItem = React.useCallback(({ item: memberId }: { item: string }) => (
     <MemberItem
       memberId={memberId}
@@ -93,6 +93,22 @@ export const GroupMembers: React.FC<GroupMembersProps> = ({
   ), [memberProfiles, isGroupCreator, currentUserId, onKickMember, kickingMemberId])
 
   const keyExtractor = React.useCallback((memberId: string) => memberId, [])
+
+  if (error) {
+    return (
+      <Surface style={[styles.container, { backgroundColor: theme.surface }]}>
+        <Text 
+          variant="titleMedium" 
+          style={[styles.title, { color: theme.text.primary }]}
+        >
+          Members
+        </Text>
+        <Text style={[styles.error, { color: theme.text.secondary }]}>
+          {error}
+        </Text>
+      </Surface>
+    )
+  }
 
   return (
     <Surface style={[styles.container, { backgroundColor: theme.surface }]}>
@@ -144,5 +160,9 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 8,
+  },
+  error: {
+    textAlign: 'center',
+    marginVertical: 16,
   },
 }) 

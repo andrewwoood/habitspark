@@ -2,7 +2,6 @@ import React from 'react'
 import { View, StyleSheet, Animated } from 'react-native'
 import { Button } from 'react-native-paper'
 import { useAppTheme } from '../theme/ThemeContext'
-import { haptics } from '../utils/haptics'
 
 interface GroupActionsProps {
   isGroupCreator: boolean
@@ -42,19 +41,16 @@ export const GroupActions: React.FC<GroupActionsProps> = ({
   }
 
   const handleCopyInvite = async () => {
-    haptics.light()
     animateButton()
     onCopyInvite()
   }
 
   const handleLeave = () => {
-    haptics.warning()
     animateButton()
     onLeave()
   }
 
   const handleDelete = () => {
-    haptics.heavy()
     animateButton()
     onDelete()
   }

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { View, StyleSheet, ScrollView, Share, Alert, Platform, RefreshControl } from 'react-native'
 import { Text, List, Button, ActivityIndicator, IconButton, Avatar, Snackbar, Surface, SegmentedButtons } from 'react-native-paper'
 import { useGroupStore } from '../store/groupStore'
@@ -37,8 +37,10 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
     kickMember, 
     updateGroupStats
   } = useGroupStore()
-  console.log('Leave Group Function:', leaveGroup)
-  const group = groups.find(g => g.id === groupId)
+  const group = useMemo(() => 
+    groups.find(g => g.id === groupId), 
+    [groups, groupId]
+  )
   const { user } = useAuthStore()
   const [memberProfiles, setMemberProfiles] = useState<Record<string, MemberProfile>>({})
   const [loadingProfiles, setLoadingProfiles] = useState(true)
@@ -51,45 +53,38 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
   const [isCopying, setIsCopying] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
 
-  console.log('Current Group ID:', groupId)
-  console.log('Found Group:', group)
-
   // Fetch group stats when screen loads
   useEffect(() => {
     fetchGroupStats(groupId)
   }, [groupId])
 
   // Fetch member profiles
-  useEffect(() => {
-    const fetchMemberProfiles = async () => {
-      if (!group) return
-      setLoadingProfiles(true)
-      
-      try {
-        const { data, error } = await supabase
-          .rpc('get_user_profiles', {
-            user_ids: group.members
-          })
+  const fetchMemberProfiles = useCallback(async () => {
+    if (!group) return
+    setLoadingProfiles(true)
+    
+    try {
+      const { data, error } = await supabase
+        .rpc('get_user_profiles', {
+          user_ids: group.members
+        })
 
-        if (error) throw error
+      if (error) throw error
 
-        const profiles = data.reduce((acc, user) => ({
-          ...acc,
-          [user.id]: {
-            display_name: user.display_name || 'Anonymous User',
-            avatar_url: user.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${user.id}`
-          }
-        }), {})
+      const profiles = data.reduce((acc, user) => ({
+        ...acc,
+        [user.id]: {
+          display_name: user.display_name || 'Anonymous User',
+          avatar_url: user.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${user.id}`
+        }
+      }), {})
 
-        setMemberProfiles(profiles)
-      } catch (error) {
-        console.error('Error fetching member profiles:', error)
-      } finally {
-        setLoadingProfiles(false)
-      }
+      setMemberProfiles(profiles)
+    } catch (error) {
+      console.error('Error fetching member profiles:', error)
+    } finally {
+      setLoadingProfiles(false)
     }
-
-    fetchMemberProfiles()
   }, [group])
 
   // Add effect to update stats when habits change
@@ -138,133 +133,89 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
     }
   }
 
-  const handleLeave = () => {
-    console.log('1. handleLeave called')
-    
-    showConfirmDialog(
-      'Leave Group',
-      'Are you sure you want to leave this group?',
-      () => {
-        console.log('2. Leave confirmed')
-        setIsLeaving(true)
-        console.log('3. Group ID for leaving:', groupId)
-        
-        leaveGroup(groupId)
-          .then(() => {
-            console.log('4. Leave group successful')
-            navigation.goBack()
-          })
-          .catch((error) => {
-            console.error('5. Leave group error:', error)
-            if (Platform.OS === 'web') {
-              window.alert(error.message || 'Failed to leave group')
-            } else {
-              Alert.alert('Error', error.message || 'Failed to leave group')
-            }
-          })
-          .finally(() => {
-            console.log('6. Leave group operation completed')
-            setIsLeaving(false)
-          })
-      }
-    )
-  }
-
-  const isGroupCreator = group?.created_by === user?.id
-
-  const handleKickMember = (memberId: string) => {
-    console.log('1. handleKickMember called')
-    
-    showConfirmDialog(
-      'Remove Member',
-      'Are you sure you want to remove this member from the group?',
-      () => {
-        console.log('2. Kick member confirmed')
-        setKickingMemberId(memberId)
-        console.log('3. Member ID for removal:', memberId)
-        
-        kickMember(groupId, memberId)
-          .then(() => {
-            console.log('4. Kick member successful')
-          })
-          .catch((error) => {
-            console.error('5. Kick member error:', error)
-            if (Platform.OS === 'web') {
-              window.alert(error.message || 'Failed to remove member')
-            } else {
-              Alert.alert('Error', error.message || 'Failed to remove member')
-            }
-          })
-          .finally(() => {
-            console.log('6. Kick member operation completed')
-            setKickingMemberId(null)
-          })
-      }
-    )
-  }
-
-  const handleDeleteGroup = () => {
-    console.log('1. handleDeleteGroup called')
-    
-    showConfirmDialog(
-      'Delete Group',
-      'Are you sure you want to delete this group? This action cannot be undone.',
-      () => {
-        console.log('2. Delete confirmed')
-        setIsDeleting(true)
-        console.log('3. Group ID for deletion:', groupId)
-        
-        deleteGroup(groupId)
-          .then(() => {
-            console.log('4. Delete group successful')
-            navigation.navigate('Groups')
-          })
-          .catch((error) => {
-            console.error('5. Delete group error:', error)
-            if (Platform.OS === 'web') {
-              window.alert(error.message || 'Failed to delete group')
-            } else {
-              Alert.alert('Error', error.message || 'Failed to delete group')
-            }
-          })
-          .finally(() => {
-            console.log('6. Delete group operation completed')
-            setIsDeleting(false)
-          })
-      }
-    )
-  }
-
-  const handleCopyInviteLink = async () => {
-    setIsCopying(true)
-    
-    try {
-      if (!groupId) {
-        throw new Error('Invalid group')
-      }
-
-      const url = await generateInviteLink(groupId)
-      if (!url) {
-        throw new Error('No URL generated')
-      }
-
-      await Clipboard.setStringAsync(url)
-      setShowCopiedMessage(true)
-      haptics.success()
-    } catch (error) {
-      console.error('Copy invite link error:', error)
-      haptics.error()
-      if (Platform.OS === 'web') {
-        window.alert('Failed to copy invite link')
-      } else {
-        Alert.alert('Error', 'Failed to copy invite link')
-      }
-    } finally {
-      setIsCopying(false)
+  const handleError = (error: any, message: string) => {
+    console.error(`${message}:`, error)
+    if (Platform.OS === 'web') {
+      window.alert(message)
+    } else {
+      Alert.alert('Error', message)
     }
   }
 
-  const handleRefresh = React.useCallback(async () => {
+  const handleLeave = useCallback(() => {
+    showConfirmDialog(
+      'Leave Group',
+      'Are you sure you want to leave this group?',
+      async () => {
+        setIsLeaving(true)
+        try {
+          await leaveGroup(groupId)
+          navigation.goBack()
+        } catch (error) {
+          handleError(error, 'Failed to leave group')
+        } finally {
+          setIsLeaving(false)
+        }
+      }
+    )
+  }, [groupId, leaveGroup, navigation])
+
+  const isGroupCreator = useMemo(() => 
+    group?.created_by === user?.id,
+    [group?.created_by, user?.id]
+  )
+
+  const handleKickMember = useCallback((memberId: string) => {
+    showConfirmDialog(
+      'Remove Member',
+      'Are you sure you want to remove this member from the group?',
+      async () => {
+        setKickingMemberId(memberId)
+        try {
+          await kickMember(groupId, memberId)
+        } catch (error) {
+          handleError(error, 'Failed to remove member')
+        } finally {
+          setKickingMemberId(null)
+        }
+      }
+    )
+  }, [groupId, kickMember])
+
+  const handleDeleteGroup = useCallback(() => {
+    showConfirmDialog(
+      'Delete Group',
+      'Are you sure you want to delete this group? This action cannot be undone.',
+      async () => {
+        setIsDeleting(true)
+        try {
+          await deleteGroup(groupId)
+          navigation.navigate('Groups')
+        } catch (error) {
+          handleError(error, 'Failed to delete group')
+        } finally {
+          setIsDeleting(false)
+        }
+      }
+    )
+  }, [groupId, deleteGroup, navigation])
+
+  const handleCopyInviteLink = useCallback(async () => {
+    setIsCopying(true)
+    try {
+      if (!groupId) throw new Error('Invalid group')
+      const url = await generateInviteLink(groupId)
+      if (!url) throw new Error('No URL generated')
+      await Clipboard.setStringAsync(url)
+      setShowCopiedMessage(true)
+    } catch (error) {
+      handleError(error, 'Failed to copy invite link')
+    } finally {
+      setIsCopying(false)
+    }
+  }, [groupId])
+
+  const handleRefresh = useCallback(async () => {
     setRefreshing(true)
     try {
       await Promise.all([
@@ -276,7 +227,25 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
     } finally {
       setRefreshing(false)
     }
-  }, [groupId])
+  }, [groupId, fetchGroupStats, fetchMemberProfiles])
+
+  // Add cleanup effect
+  useEffect(() => {
+    return () => {
+      // Clean up any pending state updates
+      setLoadingProfiles(false)
+      setRefreshing(false)
+      setIsCopying(false)
+      setIsLeaving(false)
+      setIsDeleting(false)
+      setKickingMemberId(null)
+    }
+  }, [])
+
+  // Add this useEffect after the fetchMemberProfiles definition
+  useEffect(() => {
+    fetchMemberProfiles()
+  }, [fetchMemberProfiles])
 
   if (loading) {
     return (

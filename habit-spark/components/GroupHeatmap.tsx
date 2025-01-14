@@ -12,7 +12,7 @@ interface GroupHeatmapProps {
   timeframe: string
 }
 
-export const GroupHeatmap = ({ completionData }: GroupHeatmapProps) => {
+export const GroupHeatmap = ({ completionData, timeframe }: GroupHeatmapProps) => {
   const { theme, isDark } = useAppTheme()
 
   const getDates = () => {
@@ -60,7 +60,7 @@ export const GroupHeatmap = ({ completionData }: GroupHeatmapProps) => {
       return isDark ? theme.surface : '#F5F5F5'
     }
     
-    // Use amber theme colors
+    // Use amber theme colors with opacity
     if (dayData.completion_rate <= 25) return `${theme.primary}40` // 25% opacity
     if (dayData.completion_rate <= 50) return `${theme.primary}80` // 50% opacity
     if (dayData.completion_rate <= 75) return `${theme.primary}BF` // 75% opacity
@@ -71,13 +71,12 @@ export const GroupHeatmap = ({ completionData }: GroupHeatmapProps) => {
 
   const styles = StyleSheet.create({
     outerContainer: {
-      backgroundColor: theme.surface,
-      borderRadius: 12,
       padding: 16,
+      borderRadius: 12,
       elevation: 4,
-      shadowColor: theme.shadow.color,
+      shadowColor: '#000',
       shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: theme.shadow.opacity,
+      shadowOpacity: 0.1,
       shadowRadius: 4,
       marginVertical: 8,
     },
@@ -131,12 +130,14 @@ export const GroupHeatmap = ({ completionData }: GroupHeatmapProps) => {
   })
 
   return (
-    <Surface style={styles.outerContainer}>
+    <Surface style={[styles.outerContainer, { backgroundColor: theme.surface }]}>
       <View style={styles.headerContainer}>
-        <Text style={styles.yearLabel}>{year}</Text>
+        <Text style={[styles.yearLabel, { color: theme.text.primary }]}>
+          {year}
+        </Text>
         <View style={styles.monthLabels}>
           {months.map(({ name }, i) => (
-            <Text key={i} style={styles.monthLabel}>
+            <Text key={i} style={[styles.monthLabel, { color: theme.text.secondary }]}>
               {name}
             </Text>
           ))}
@@ -146,7 +147,7 @@ export const GroupHeatmap = ({ completionData }: GroupHeatmapProps) => {
       <View style={styles.gridContainer}>
         <View style={styles.dayLabels}>
           {days.map((day, index) => (
-            <Text key={index} style={styles.dayLabel}>
+            <Text key={index} style={[styles.dayLabel, { color: theme.text.secondary }]}>
               {day}
             </Text>
           ))}
