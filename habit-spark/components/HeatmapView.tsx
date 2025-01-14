@@ -15,7 +15,6 @@ export const HeatmapView = ({ dailyCompletions, timeframe, theme, isDark }: Heat
   const getDates = () => {
     const weeks = []
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-    const months = []
     
     const now = new Date()
     const startDate = new Date()
@@ -33,30 +32,26 @@ export const HeatmapView = ({ dailyCompletions, timeframe, theme, isDark }: Heat
         break
     }
     
-    startDate.setDate(1) // Start from first day of month
-    const dates = []
+    // Adjust startDate to previous Sunday to align weeks
+    while (startDate.getDay() !== 0) {
+      startDate.setDate(startDate.getDate() - 1)
+    }
     
-    // Add all dates from start date to now
+    const dates = []
     const currentDate = new Date(startDate)
+    
+    // Collect all dates
     while (currentDate <= now) {
       dates.push(currentDate.toISOString().split('T')[0])
-      
-      if (currentDate.getDate() === 1) {
-        months.push({
-          name: currentDate.toLocaleString('default', { month: 'short' }),
-          index: dates.length - 1
-        })
-      }
-      
       currentDate.setDate(currentDate.getDate() + 1)
     }
     
     // Group into weeks
     for (let i = 0; i < dates.length; i += 7) {
-      weeks.push(dates.slice(i, i + 7))
+      weeks.push(dates.slice(i, Math.min(i + 7, dates.length)))
     }
     
-    return { weeks, days, months }
+    return { weeks, days }
   }
 
   const getColorForPercentage = (date: string | null) => {
@@ -68,14 +63,14 @@ export const HeatmapView = ({ dailyCompletions, timeframe, theme, isDark }: Heat
       return isDark ? '#2D2D2D' : '#F5F5F5' // Light gray in light mode, darker gray in dark mode
     }
     
-    // Theme-aware colors (light to dark)
-    if (completion.percentage <= 25) return theme.primary + '40'
-    if (completion.percentage <= 50) return theme.primary + '80'
-    if (completion.percentage <= 75) return theme.primary + 'BF'
-    return theme.primary
+  // For the light theme, from least to most complete:
+  if (completion.percentage <= 25) return '#fef3c7'  // bg-amber-100
+  if (completion.percentage <= 50) return '#fcd34d'  // bg-amber-300
+  if (completion.percentage <= 75) return '#f59e0b'  // bg-amber-500
+  return '#b45309'                                   // bg-amber-700
   }
 
-  const { weeks, days, months } = getDates()
+  const { weeks, days } = getDates()
 
   return (
     <View style={styles.container}>

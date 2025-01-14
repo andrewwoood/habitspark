@@ -63,10 +63,10 @@ export const GroupHeatmap = ({ completionData, timeframe }: GroupHeatmapProps) =
     }
     
     // Use orange theme colors with opacity
-    if (dayData.completion_rate <= 25) return '#F4511E40'
-    if (dayData.completion_rate <= 50) return '#F4511E80'
-    if (dayData.completion_rate <= 75) return '#F4511EBF'
-    return '#F4511E'
+    if (dayData.completion_rate <= 25) return '#fef3c7'  // bg-amber-100
+    if (dayData.completion_rate <= 50) return '#fcd34d'  // bg-amber-300
+    if (dayData.completion_rate <= 75) return '#f59e0b'  // bg-amber-500
+    return '#b45309'
   }
 
   const { weeks, days, months, year } = getDates()
