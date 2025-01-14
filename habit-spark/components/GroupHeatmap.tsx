@@ -1,16 +1,20 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
 import { Text, Surface } from 'react-native-paper'
+import { useAppTheme } from '../theme/ThemeContext'
 
 interface GroupHeatmapProps {
-  completionData: {
+  completionData: Array<{
     date: string
     completion_rate: number
     member_count: number
-  }[]
+  }>
+  timeframe: string
 }
 
 export const GroupHeatmap = ({ completionData }: GroupHeatmapProps) => {
+  const { theme, isDark } = useAppTheme()
+
   const getDates = () => {
     const weeks = []
     const days = ['', 'Mon', '', 'Wed', '', 'Fri', '']
@@ -49,21 +53,82 @@ export const GroupHeatmap = ({ completionData }: GroupHeatmapProps) => {
 
   const getColorForPercentage = (date: string | null) => {
     if (!date) return 'transparent'
-    if (new Date(date) > new Date()) return '#ebedf0'
+    if (new Date(date) > new Date()) return theme.background
     
     const dayData = completionData.find(d => d.date === date)
     if (!dayData || dayData.completion_rate === 0) {
-      return '#ebedf0'
+      return isDark ? theme.surface : '#F5F5F5'
     }
     
-    // Purple theme colors for group completion rate
-    if (dayData.completion_rate <= 25) return '#E8DEF8'
-    if (dayData.completion_rate <= 50) return '#B4A0E5'
-    if (dayData.completion_rate <= 75) return '#8B6BC7'
-    return '#6750A4'
+    // Use amber theme colors
+    if (dayData.completion_rate <= 25) return `${theme.primary}40` // 25% opacity
+    if (dayData.completion_rate <= 50) return `${theme.primary}80` // 50% opacity
+    if (dayData.completion_rate <= 75) return `${theme.primary}BF` // 75% opacity
+    return theme.primary
   }
 
   const { weeks, days, months, year } = getDates()
+
+  const styles = StyleSheet.create({
+    outerContainer: {
+      backgroundColor: theme.surface,
+      borderRadius: 12,
+      padding: 16,
+      elevation: 4,
+      shadowColor: theme.shadow.color,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: theme.shadow.opacity,
+      shadowRadius: 4,
+      marginVertical: 8,
+    },
+    headerContainer: {
+      marginBottom: 12,
+    },
+    yearLabel: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: theme.text.primary,
+      marginBottom: 8,
+    },
+    monthLabels: {
+      flexDirection: 'row',
+      paddingLeft: 48,
+    },
+    monthLabel: {
+      fontSize: 11,
+      color: theme.text.secondary,
+      fontWeight: '500',
+      width: 28,
+      marginRight: 24,
+    },
+    gridContainer: {
+      flexDirection: 'row',
+    },
+    dayLabels: {
+      width: 40,
+      marginRight: 8,
+    },
+    dayLabel: {
+      fontSize: 11,
+      color: theme.text.secondary,
+      height: 13,
+      textAlign: 'right',
+      fontWeight: '500',
+    },
+    container: {
+      flexDirection: 'row',
+      gap: 2,
+    },
+    week: {
+      flexDirection: 'column',
+      gap: 2,
+    },
+    day: {
+      width: 10,
+      height: 10,
+      borderRadius: 2,
+    },
+  })
 
   return (
     <Surface style={styles.outerContainer}>
@@ -105,66 +170,4 @@ export const GroupHeatmap = ({ completionData }: GroupHeatmapProps) => {
       </View>
     </Surface>
   )
-}
-
-const styles = StyleSheet.create({
-  // Same styles as HeatmapView
-  outerContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    marginVertical: 8,
-  },
-  headerContainer: {
-    marginBottom: 12,
-  },
-  yearLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#24292f',
-    marginBottom: 8,
-  },
-  monthLabels: {
-    flexDirection: 'row',
-    paddingLeft: 48,
-  },
-  monthLabel: {
-    fontSize: 11,
-    color: '#57606a',
-    fontWeight: '500',
-    width: 28,
-    marginRight: 24,
-  },
-  gridContainer: {
-    flexDirection: 'row',
-  },
-  dayLabels: {
-    width: 40,
-    marginRight: 8,
-  },
-  dayLabel: {
-    fontSize: 11,
-    color: '#57606a',
-    height: 13,
-    textAlign: 'right',
-    fontWeight: '500',
-  },
-  container: {
-    flexDirection: 'row',
-    gap: 2,
-  },
-  week: {
-    flexDirection: 'column',
-    gap: 2,
-  },
-  day: {
-    width: 10,
-    height: 10,
-    borderRadius: 2,
-  },
-}) 
+} 

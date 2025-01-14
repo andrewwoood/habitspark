@@ -14,6 +14,7 @@ import { StatisticsView } from '../components/StatisticsView'
 import { useFocusEffect } from '@react-navigation/native'
 import { useAppTheme } from '../theme/ThemeContext'
 import Toast from 'react-native-toast-message'
+import { haptics } from '../utils/haptics'
 
 export const HomeScreen = ({ navigation }: NavigationProps) => {
   const { habits, loading, error, fetchHabits, toggleHabit, updateBestStreak, addHabit, updateHabit, deleteHabit } = useHabitStore()
@@ -132,6 +133,8 @@ export const HomeScreen = ({ navigation }: NavigationProps) => {
 
   const handleHabitToggle = async (habitId: string) => {
     const animation = getAnimationForHabit(habitId)
+    const habit = habits.find(h => h.id === habitId)
+    const isCompleted = habit?.completed_dates?.includes(todayStr)
     
     // Start scale animation
     Animated.sequence([
@@ -147,8 +150,19 @@ export const HomeScreen = ({ navigation }: NavigationProps) => {
       })
     ]).start()
 
-    // Toggle the habit
-    await toggleHabit(habitId, todayStr)
+    try {
+      // Toggle the habit
+      await toggleHabit(habitId, todayStr)
+      // Provide haptic feedback based on action
+      if (isCompleted) {
+        haptics.light() // Uncompleting
+      } else {
+        haptics.success() // Completing
+      }
+    } catch (error) {
+      console.error('Error toggling habit:', error)
+      haptics.error()
+    }
   }
 
   // First, add a new animation map for card press states
@@ -262,9 +276,11 @@ export const HomeScreen = ({ navigation }: NavigationProps) => {
         description: '',
         frequency: 'daily',
       })
+      haptics.success()
       hideModal()
     } catch (error) {
       console.error('Error creating habit:', error)
+      haptics.error()
     }
   }
 
@@ -277,12 +293,14 @@ export const HomeScreen = ({ navigation }: NavigationProps) => {
       setEditModalVisible(false)
       setEditingHabit(null)
       setEditedHabitName('')
+      haptics.success()
       Toast.show({
         type: 'success',
         text1: 'Habit updated successfully'
       })
     } catch (error) {
       console.error('Error updating habit:', error)
+      haptics.error()
       Toast.show({
         type: 'error',
         text1: 'Failed to update habit'
@@ -302,12 +320,14 @@ export const HomeScreen = ({ navigation }: NavigationProps) => {
       setEditingHabit(null)
       setEditedHabitName('')
       setShowDeleteConfirm(false)
+      haptics.warning() // Use warning for destructive actions
       Toast.show({
         type: 'success',
         text1: 'Habit deleted successfully'
       })
     } catch (error) {
       console.error('Error deleting habit:', error)
+      haptics.error()
       Toast.show({
         type: 'error',
         text1: 'Failed to delete habit'

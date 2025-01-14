@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView, Share, Alert, Platform } from 'react-native'
+import { View, StyleSheet, ScrollView, Share, Alert, Platform, RefreshControl } from 'react-native'
 import { Text, List, Button, ActivityIndicator, IconButton, Avatar, Snackbar, Surface, SegmentedButtons } from 'react-native-paper'
 import { useGroupStore } from '../store/groupStore'
 import { GroupHeatmap } from '../components/GroupHeatmap'
@@ -10,35 +10,18 @@ import { supabase } from '../api/supabaseClient'
 import { generateInviteLink } from '../store/inviteStore'
 import * as Clipboard from 'expo-clipboard'
 import { useAppTheme } from '../theme/ThemeContext'
+import { GroupHeader } from '../components/GroupHeader'
+import { GroupProgress } from '../components/GroupProgress'
+import { GroupMembers } from '../components/GroupMembers'
+import { GroupActions } from '../components/GroupActions'
+import { ErrorBoundary } from '../components/ErrorBoundary'
+import { ErrorState } from '../components/ErrorState'
+import { haptics } from '../utils/haptics'
 
 // First, add an interface for member data
 interface MemberProfile {
   display_name: string
   avatar_url: string
-}
-
-// First, let's create a type-safe theme color reference
-const getDateRangeColor = (theme: any) => {
-  try {
-    return theme?.colors?.onSurfaceVariant || '#666666'
-  } catch (e) {
-    return '#666666' // Fallback color
-  }
-}
-
-// Add this helper function alongside the other one at the top
-const getSegmentedButtonColors = (theme: any) => {
-  try {
-    return {
-      secondaryContainer: theme?.colors?.surfaceVariant || '#f0f0f0',
-      onSecondaryContainer: theme?.colors?.onSurfaceVariant || '#666666'
-    }
-  } catch (e) {
-    return {
-      secondaryContainer: '#f0f0f0',  // Fallback light color
-      onSecondaryContainer: '#666666' // Fallback text color
-    }
-  }
 }
 
 export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'GroupDetails'>) => {
@@ -66,6 +49,7 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
   const [isDeleting, setIsDeleting] = useState(false)
   const [kickingMemberId, setKickingMemberId] = useState<string | null>(null)
   const [isCopying, setIsCopying] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
 
   console.log('Current Group ID:', groupId)
   console.log('Found Group:', group)
@@ -252,65 +236,47 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
   }
 
   const handleCopyInviteLink = async () => {
-    console.log('1. Copy invite link called')
     setIsCopying(true)
     
     try {
-      console.log('2. Generating invite link for group:', groupId)
       if (!groupId) {
         throw new Error('Invalid group')
       }
 
       const url = await generateInviteLink(groupId)
-      console.log('3. Generated URL:', url)
-      
       if (!url) {
         throw new Error('No URL generated')
       }
 
       await Clipboard.setStringAsync(url)
-      console.log('4. Copied to clipboard successfully')
       setShowCopiedMessage(true)
+      haptics.success()
     } catch (error) {
-      console.error('5. Copy invite link error:', error)
+      console.error('Copy invite link error:', error)
+      haptics.error()
       if (Platform.OS === 'web') {
         window.alert('Failed to copy invite link')
       } else {
         Alert.alert('Error', 'Failed to copy invite link')
       }
     } finally {
-      console.log('6. Copy operation completed')
       setIsCopying(false)
     }
   }
 
-  const getTimeframeLabel = () => {
-    const now = new Date()
-    let startDate = new Date()
-    
-    switch (timeframe) {
-      case '1m':
-        startDate.setMonth(now.getMonth() - 1)
-        break
-      case '3m':
-        startDate.setMonth(now.getMonth() - 3)
-        break
-      case '6m':
-        startDate.setMonth(now.getMonth() - 6)
-        break
+  const handleRefresh = React.useCallback(async () => {
+    setRefreshing(true)
+    try {
+      await Promise.all([
+        fetchGroupStats(groupId),
+        fetchMemberProfiles(),
+      ])
+    } catch (error) {
+      console.error('Error refreshing:', error)
+    } finally {
+      setRefreshing(false)
     }
-
-    return `${startDate.toLocaleString('default', { month: 'short' })} ${startDate.getFullYear()} - Present`
-  }
-
-  // Create dynamic styles with fallback
-  const dynamicStyles = {
-    dateRange: {
-      fontSize: 12,
-      color: getDateRangeColor(theme),
-      marginBottom: 12,
-    }
-  }
+  }, [groupId])
 
   if (loading) {
     return (
@@ -329,141 +295,71 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <IconButton
-          icon="arrow-left"
-          onPress={() => navigation.goBack()}
+    <ErrorBoundary>
+      <View style={styles.container}>
+        <GroupHeader
+          name={group.name}
+          code={group.code}
+          onBack={() => navigation.goBack()}
         />
-        <Text variant="headlineSmall">Group Details</Text>
-      </View>
 
-      <ScrollView style={styles.scrollView}>
-        {/* Group Info Card */}
-        <Surface style={styles.card}>
-          <Text variant="headlineMedium" style={styles.groupName}>
-            {group.name}
-          </Text>
-          <View style={styles.codeContainer}>
-            <Text variant="bodyMedium">Group Code: </Text>
-            <Text variant="bodyMedium" style={styles.codeText}>
-              {group.code}
-            </Text>
-          </View>
-        </Surface>
-
-        {/* Group Progress Card */}
-        <Surface style={styles.card}>
-          <View style={styles.sectionHeader}>
-            <Text variant="titleMedium" style={styles.sectionTitle}>
-              Group Progress
-            </Text>
-            <SegmentedButtons
-              value={timeframe}
-              onValueChange={setTimeframe}
-              buttons={[
-                { value: '1m', label: '1M' },
-                { value: '3m', label: '3M' },
-                { value: '6m', label: '6M' },
-              ]}
-              style={styles.segmentedButtons}
-              theme={{
-                colors: getSegmentedButtonColors(theme)
-              }}
+        <ScrollView 
+          style={styles.scrollView}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={theme.primary}
+              colors={[theme.primary]}
             />
-          </View>
-          <Text style={dynamicStyles.dateRange}>
-            {getTimeframeLabel()}
-          </Text>
-          <GroupHeatmap 
-            completionData={groupStats[groupId] || []}
-            timeframe={timeframe}
-          />
-        </Surface>
-
-        {/* Members Card */}
-        <Surface style={styles.card}>
-          <Text variant="titleMedium" style={styles.sectionTitle}>
-            Members
-          </Text>
-          {loadingProfiles ? (
-            <ActivityIndicator style={styles.loader} />
+          }
+        >
+          {error ? (
+            <ErrorState 
+              message={error} 
+              onRetry={handleRefresh}
+            />
           ) : (
-            group.members.map(memberId => (
-              <List.Item
-                key={memberId}
-                title={memberProfiles[memberId]?.display_name || 'Anonymous User'}
-                left={() => (
-                  <Avatar.Image
-                    size={40}
-                    source={{ uri: memberProfiles[memberId]?.avatar_url }}
-                  />
-                )}
-                right={() => 
-                  isGroupCreator && memberId !== user?.id ? (
-                    <IconButton 
-                      icon="account-remove"
-                      onPress={() => handleKickMember(memberId)}
-                      disabled={kickingMemberId === memberId}
-                      loading={kickingMemberId === memberId}
-                    />
-                  ) : null
-                }
-                style={styles.memberItem}
+            <>
+              <GroupProgress
+                timeframe={timeframe}
+                onTimeframeChange={setTimeframe}
+                groupId={groupId}
+                completionData={groupStats[groupId] || []}
               />
-            ))
+
+              <GroupMembers
+                members={group.members}
+                memberProfiles={memberProfiles}
+                isGroupCreator={isGroupCreator}
+                currentUserId={user?.id}
+                onKickMember={handleKickMember}
+                kickingMemberId={kickingMemberId}
+                loadingProfiles={loadingProfiles}
+              />
+
+              <GroupActions
+                isGroupCreator={isGroupCreator}
+                onCopyInvite={handleCopyInviteLink}
+                onLeave={handleLeave}
+                onDelete={handleDeleteGroup}
+                isCopying={isCopying}
+                isLeaving={isLeaving}
+                isDeleting={isDeleting}
+              />
+            </>
           )}
-        </Surface>
+        </ScrollView>
 
-        {/* Action Buttons */}
-        <View style={styles.actions}>
-          <Button
-            mode="contained"
-            onPress={handleCopyInviteLink}
-            style={[styles.actionButton, styles.primaryButton]}
-            loading={isCopying}
-            disabled={isCopying}
-          >
-            {isCopying ? 'Copying...' : 'Copy Invite Link'}
-          </Button>
-
-          <Button
-            mode="contained"
-            onPress={() => {
-              console.log('Button clicked')
-              handleLeave()
-            }}
-            style={[styles.actionButton, styles.dangerButton]}
-            loading={isLeaving}
-            disabled={isLeaving}
-            buttonColor="#FF4444"
-          >
-            {isLeaving ? 'Leaving...' : 'Leave Group'}
-          </Button>
-
-          {isGroupCreator && (
-            <Button
-              mode="contained"
-              onPress={handleDeleteGroup}
-              style={[styles.actionButton, styles.dangerButton]}
-              loading={isDeleting}
-              disabled={isDeleting}
-              buttonColor="#FF4444"
-            >
-              {isDeleting ? 'Deleting...' : 'Delete Group'}
-            </Button>
-          )}
-        </View>
-      </ScrollView>
-
-      <Snackbar
-        visible={showCopiedMessage}
-        onDismiss={() => setShowCopiedMessage(false)}
-        duration={2000}
-      >
-        Invite link copied to clipboard!
-      </Snackbar>
-    </View>
+        <Snackbar
+          visible={showCopiedMessage}
+          onDismiss={() => setShowCopiedMessage(false)}
+          duration={2000}
+        >
+          Invite link copied to clipboard!
+        </Snackbar>
+      </View>
+    </ErrorBoundary>
   )
 }
 
@@ -473,28 +369,8 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
   scrollView: {
     flex: 1,
-  },
-  card: {
-    padding: 16,
-    marginBottom: 16,
-    borderRadius: 8,
-  },
-  groupName: {
-    marginBottom: 8,
-  },
-  codeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  codeText: {
-    fontWeight: 'bold',
   },
   centered: {
     flex: 1,
@@ -504,56 +380,5 @@ const styles = StyleSheet.create({
   error: {
     color: 'red',
     marginBottom: 16,
-  },
-  membersHeader: {
-    marginBottom: 16,
-  },
-  leaveButton: {
-    marginTop: 16,
-  },
-  heatmapContainer: {
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    marginBottom: 8,
-  },
-  deleteButton: {
-    marginTop: 16,
-  },
-  avatar: {
-    marginRight: 16,
-  },
-  inviteButton: {
-    marginTop: 16,
-  },
-  loader: {
-    marginVertical: 20,
-  },
-  memberItem: {
-    paddingLeft: 0,
-    paddingRight: 0,
-  },
-  actions: {
-    marginTop: 8,
-    marginBottom: 32,
-  },
-  actionButton: {
-    marginBottom: 12,
-    borderRadius: 100,
-  },
-  dangerButton: {
-    backgroundColor: '#FF4444',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  segmentedButtons: {
-    height: 32,
-  },
-  primaryButton: {
-    backgroundColor: '#6750A4',
   },
 }) 
