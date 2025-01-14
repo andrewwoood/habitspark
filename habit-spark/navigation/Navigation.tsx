@@ -23,6 +23,17 @@ const AuthStack = () => (
   </Stack.Navigator>
 )
 
+// First, create a GroupStack for the Groups tab
+const GroupStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="GroupList" component={GroupScreen} />
+    <Stack.Screen 
+      name="GroupDetails" 
+      component={GroupDetailsScreen}
+    />
+  </Stack.Navigator>
+)
+
 // Main tabs with our new design
 const MainTabs = () => {
   return (
@@ -88,7 +99,7 @@ const MainTabs = () => {
       />
       <Tab.Screen
         name="Groups"
-        component={GroupScreen}
+        component={GroupStack}
         options={{
           tabBarLabel: 'Groups',
           tabBarIcon: ({ color, size }) => (
@@ -121,14 +132,6 @@ const MainStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="MainTabs" component={MainTabs} />
     <Stack.Screen name="CreateHabit" component={CreateHabitScreen} />
-    <Stack.Screen 
-      name="GroupDetails" 
-      component={GroupDetailsScreen}
-      options={{
-        headerShown: true,
-        headerTitle: 'Group Details',
-      }}
-    />
   </Stack.Navigator>
 )
 

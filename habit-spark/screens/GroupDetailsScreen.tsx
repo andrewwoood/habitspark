@@ -60,31 +60,31 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
 
   // Fetch member profiles
   const fetchMemberProfiles = useCallback(async () => {
-    if (!group) return
-    setLoadingProfiles(true)
-    
-    try {
-      const { data, error } = await supabase
-        .rpc('get_user_profiles', {
-          user_ids: group.members
-        })
+      if (!group) return
+      setLoadingProfiles(true)
+      
+      try {
+        const { data, error } = await supabase
+          .rpc('get_user_profiles', {
+            user_ids: group.members
+          })
 
-      if (error) throw error
+        if (error) throw error
 
-      const profiles = data.reduce((acc, user) => ({
-        ...acc,
-        [user.id]: {
-          display_name: user.display_name || 'Anonymous User',
-          avatar_url: user.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${user.id}`
-        }
-      }), {})
+        const profiles = data.reduce((acc, user) => ({
+          ...acc,
+          [user.id]: {
+            display_name: user.display_name || 'Anonymous User',
+            avatar_url: user.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${user.id}`
+          }
+        }), {})
 
-      setMemberProfiles(profiles)
-    } catch (error) {
-      console.error('Error fetching member profiles:', error)
-    } finally {
-      setLoadingProfiles(false)
-    }
+        setMemberProfiles(profiles)
+      } catch (error) {
+        console.error('Error fetching member profiles:', error)
+      } finally {
+        setLoadingProfiles(false)
+      }
   }, [group])
 
   // Add effect to update stats when habits change
@@ -150,7 +150,7 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
         setIsLeaving(true)
         try {
           await leaveGroup(groupId)
-          navigation.goBack()
+            navigation.goBack()
         } catch (error) {
           handleError(error, 'Failed to leave group')
         } finally {
@@ -190,7 +190,7 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
         setIsDeleting(true)
         try {
           await deleteGroup(groupId)
-          navigation.navigate('Groups')
+            navigation.navigate('Groups')
         } catch (error) {
           handleError(error, 'Failed to delete group')
         } finally {
@@ -265,7 +265,7 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
 
   return (
     <ErrorBoundary>
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
         <GroupHeader
           name={group.name}
           code={group.code}
@@ -273,7 +273,7 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
         />
 
         <ScrollView 
-          style={styles.scrollView}
+          style={[styles.scrollView, { backgroundColor: theme.background }]}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}

@@ -53,18 +53,20 @@ export const GroupHeatmap = ({ completionData, timeframe }: GroupHeatmapProps) =
 
   const getColorForPercentage = (date: string | null) => {
     if (!date) return 'transparent'
-    if (new Date(date) > new Date()) return theme.background
+    if (new Date(date) > new Date()) {
+      return isDark ? '#2D2D2D' : '#F5F5F5' // Light gray for future dates
+    }
     
     const dayData = completionData.find(d => d.date === date)
     if (!dayData || dayData.completion_rate === 0) {
-      return isDark ? theme.surface : '#F5F5F5'
+      return isDark ? '#2D2D2D' : '#F5F5F5'
     }
     
-    // Use amber theme colors with opacity
-    if (dayData.completion_rate <= 25) return `${theme.primary}40` // 25% opacity
-    if (dayData.completion_rate <= 50) return `${theme.primary}80` // 50% opacity
-    if (dayData.completion_rate <= 75) return `${theme.primary}BF` // 75% opacity
-    return theme.primary
+    // Use orange theme colors with opacity
+    if (dayData.completion_rate <= 25) return '#F4511E40'
+    if (dayData.completion_rate <= 50) return '#F4511E80'
+    if (dayData.completion_rate <= 75) return '#F4511EBF'
+    return '#F4511E'
   }
 
   const { weeks, days, months, year } = getDates()

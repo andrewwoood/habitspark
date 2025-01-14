@@ -1,12 +1,12 @@
 export const lightTheme = {
   background: '#FFF8E7',      // Light amber background
   surface: '#FFFFFF',         // White
-  primary: '#8B4513',        // Dark amber
+  primary: '#FFA500',        // Dark amber
   secondary: '#D2691E',      // Medium amber
   accent: '#FFA500',         // Orange (for fire icon)
   text: {
-    primary: '#8B4513',      // Dark amber
-    secondary: '#D2691E',    // Medium amber
+    primary: '#5D4037', // Deep brown
+    secondary: '#8D6E63', // Lighter brown
   },
   border: '#FFF8E7',
   shadow: {

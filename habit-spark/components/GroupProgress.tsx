@@ -47,10 +47,11 @@ export const GroupProgress: React.FC<GroupProgressProps> = ({
       <View style={styles.header}>
         <Text 
           variant="titleMedium" 
-          style={[styles.title, { color: theme.text.primary }]}
+          style={[styles.title, { color: '#5D4037' }]}
         >
           Group Progress
         </Text>
+        
         <SegmentedButtons
           value={timeframe}
           onValueChange={onTimeframeChange}
@@ -59,15 +60,17 @@ export const GroupProgress: React.FC<GroupProgressProps> = ({
             { value: '3m', label: '3M' },
             { value: '6m', label: '6M' },
           ]}
-          style={styles.segmentedButtons}
+          style={styles.timeframeButtons}
           theme={{
             colors: {
-              secondaryContainer: theme.background,
-              onSecondaryContainer: theme.text.primary,
+              primary: '#F4511E',
+              secondaryContainer: '#FFF8E1',
+              onSecondaryContainer: '#5D4037',
             }
           }}
         />
       </View>
+      
       <Text style={[styles.dateRange, { color: theme.text.secondary }]}>
         {getTimeframeLabel()}
       </Text>
@@ -107,5 +110,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginBottom: 12,
     opacity: 0.7,
+  },
+  timeframeButtons: {
+    height: 36,
+    borderRadius: 20,
+    width: 'auto',
   },
 }) 

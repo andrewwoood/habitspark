@@ -2,6 +2,7 @@ import React from 'react'
 import { View, StyleSheet, Animated } from 'react-native'
 import { Button } from 'react-native-paper'
 import { useAppTheme } from '../theme/ThemeContext'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 
 interface GroupActionsProps {
   isGroupCreator: boolean
@@ -59,12 +60,16 @@ export const GroupActions: React.FC<GroupActionsProps> = ({
     <View style={styles.container}>
       <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
         <Button
-          mode="contained"
+          mode="outlined"
           onPress={handleCopyInvite}
           style={[styles.button, styles.primaryButton]}
           loading={isCopying}
           disabled={isCopying}
-          buttonColor={theme.primary}
+          textColor="#F4511E"
+          buttonColor="white"
+          icon={({ size, color }) => (
+            <MaterialCommunityIcons name="link" size={size} color={color} />
+          )}
         >
           {isCopying ? 'Copying...' : 'Copy Invite Link'}
         </Button>
@@ -77,7 +82,10 @@ export const GroupActions: React.FC<GroupActionsProps> = ({
           style={[styles.button, styles.dangerButton]}
           loading={isLeaving}
           disabled={isLeaving}
-          buttonColor="#FF4444"
+          buttonColor="#DC3545"
+          icon={({ size }) => (
+            <MaterialCommunityIcons name="exit-to-app" size={size} color="white" />
+          )}
         >
           {isLeaving ? 'Leaving...' : 'Leave Group'}
         </Button>
@@ -91,7 +99,10 @@ export const GroupActions: React.FC<GroupActionsProps> = ({
             style={[styles.button, styles.dangerButton]}
             loading={isDeleting}
             disabled={isDeleting}
-            buttonColor="#FF4444"
+            buttonColor="#DC3545"
+            icon={({ size }) => (
+              <MaterialCommunityIcons name="delete" size={size} color="white" />
+            )}
           >
             {isDeleting ? 'Deleting...' : 'Delete Group'}
           </Button>
@@ -116,6 +127,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    borderColor: '#F4511E',
+    borderWidth: 1,
   },
   dangerButton: {
     elevation: 2,
