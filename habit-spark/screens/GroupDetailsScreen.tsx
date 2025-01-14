@@ -17,11 +17,22 @@ import { GroupActions } from '../components/GroupActions'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { ErrorState } from '../components/ErrorState'
 import { haptics } from '../utils/haptics'
+import { HeatmapView } from '../components/HeatmapView'
+import type { HabitStatistics } from '../utils/statisticsCalculator'
 
 // First, add an interface for member data
 interface MemberProfile {
   display_name: string
   avatar_url: string
+}
+
+const transformGroupStatsToHeatmapData = (
+  groupStats: Array<{ date: string; completion_rate: number; member_count: number }>
+): HabitStatistics['dailyCompletions'] => {
+  return groupStats.map(stat => ({
+    date: stat.date,
+    percentage: stat.completion_rate
+  }))
 }
 
 export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'GroupDetails'>) => {
@@ -296,12 +307,41 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
             />
           ) : (
             <>
-              <GroupProgress
-                timeframe={timeframe}
-                onTimeframeChange={setTimeframe}
-                groupId={groupId}
-                completionData={groupStats[groupId] || []}
-              />
+              <Surface style={[styles.heatmapCard, { backgroundColor: theme.surface }]}>
+                <View style={styles.heatmapHeader}>
+                  <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>
+                    Group Progress
+                  </Text>
+                  <SegmentedButtons
+                    value={timeframe}
+                    onValueChange={setTimeframe}
+                    buttons={[
+                      { value: '1m', label: '1M' },
+                      { value: '3m', label: '3M' },
+                      { value: '6m', label: '6M' },
+                    ]}
+                    style={styles.segmentedButtons}
+                    theme={{
+                      colors: {
+                        primary: theme.primary,
+                        secondaryContainer: '#FFE4B5',
+                        onSecondaryContainer: theme.text.primary,
+                        onSurface: theme.text.secondary,
+                        outline: 'transparent',
+                        surface: '#FFF3E0',
+                      },
+                      roundness: 20,
+                    }}
+                    density="medium"
+                  />
+                </View>
+                <HeatmapView 
+                  dailyCompletions={transformGroupStatsToHeatmapData(groupStats[groupId] || [])}
+                  timeframe={timeframe}
+                  theme={theme}
+                  isDark={isDark}
+                />
+              </Surface>
 
               <GroupMembers
                 members={group.members}
@@ -355,5 +395,23 @@ const styles = StyleSheet.create({
   error: {
     color: 'red',
     marginBottom: 16,
+  },
+  heatmapCard: {
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 16,
+  },
+  heatmapHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  segmentedButtons: {
+    marginLeft: 'auto',
   },
 }) 
