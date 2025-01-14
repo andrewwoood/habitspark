@@ -150,9 +150,11 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
         setIsLeaving(true)
         try {
           await leaveGroup(groupId)
-            navigation.goBack()
+          haptics.success()
+          navigation.goBack()
         } catch (error) {
           handleError(error, 'Failed to leave group')
+          haptics.error()
         } finally {
           setIsLeaving(false)
         }
@@ -190,9 +192,11 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
         setIsDeleting(true)
         try {
           await deleteGroup(groupId)
-            navigation.navigate('Groups')
+          haptics.success()
+          navigation.navigate('Groups')
         } catch (error) {
           handleError(error, 'Failed to delete group')
+          haptics.error()
         } finally {
           setIsDeleting(false)
         }
@@ -208,8 +212,10 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
       if (!url) throw new Error('No URL generated')
       await Clipboard.setStringAsync(url)
       setShowCopiedMessage(true)
+      haptics.success()
     } catch (error) {
       handleError(error, 'Failed to copy invite link')
+      haptics.error()
     } finally {
       setIsCopying(false)
     }
