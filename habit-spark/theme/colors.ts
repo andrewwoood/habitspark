@@ -1,14 +1,17 @@
 export const lightTheme = {
-  background: '#FFF8E7',      // Light amber background
-  surface: '#FFFFFF',         // White
-  primary: '#FFA500',        // Dark amber
-  secondary: '#D2691E',      // Medium amber
-  accent: '#FFA500',         // Orange (for fire icon)
+  background: '#fff7ed',      // from-amber-50 gradient
+  surface: '#ffffff',         // bg-white
+  primary: '#d97706',        // text-amber-600
+  secondary: '#92400e',      // text-amber-800
+  accent: '#f59e0b',         // amber-500
   text: {
-    primary: '#5D4037', // Deep brown
-    secondary: '#8D6E63', // Lighter brown
+    primary: '#92400e',      // text-amber-800
+    secondary: '#d97706',    // text-amber-600
+    header: '#92400e',       // text-amber-800 used in headers
+    card: '#92400e',         // text-amber-800 used in cards
+    streak: '#d97706',       // text-amber-600 used for interactive elements
   },
-  border: '#FFF8E7',
+  border: '#fde68a',         // border-amber-200
   shadow: {
     color: '#000000',
     opacity: 0.2,
