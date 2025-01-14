@@ -3,7 +3,6 @@ import { useEffect, useState, useCallback, useMemo } from 'react'
 import { View, StyleSheet, ScrollView, Share, Alert, Platform, RefreshControl } from 'react-native'
 import { Text, List, Button, ActivityIndicator, IconButton, Avatar, Snackbar, Surface, SegmentedButtons } from 'react-native-paper'
 import { useGroupStore } from '../store/groupStore'
-import { GroupHeatmap } from '../components/GroupHeatmap'
 import type { NavigationProps } from '../types/navigation'
 import { useAuthStore } from '../store/authStore'
 import { supabase } from '../api/supabaseClient'
@@ -11,7 +10,6 @@ import { generateInviteLink } from '../store/inviteStore'
 import * as Clipboard from 'expo-clipboard'
 import { useAppTheme } from '../theme/ThemeContext'
 import { GroupHeader } from '../components/GroupHeader'
-import { GroupProgress } from '../components/GroupProgress'
 import { GroupMembers } from '../components/GroupMembers'
 import { GroupActions } from '../components/GroupActions'
 import { ErrorBoundary } from '../components/ErrorBoundary'
@@ -33,6 +31,31 @@ const transformGroupStatsToHeatmapData = (
     date: stat.date,
     percentage: stat.completion_rate
   }))
+}
+
+const getTimeframeLabel = (timeframe: string) => {
+  const now = new Date()
+  const startDate = new Date()
+  
+  switch (timeframe) {
+    case '1m':
+      startDate.setMonth(now.getMonth() - 1)
+      break
+    case '3m':
+      startDate.setMonth(now.getMonth() - 3)
+      break
+    case '6m':
+      startDate.setMonth(now.getMonth() - 6)
+      break
+  }
+  
+  // Format as "Oct 2024 - Present"
+  const startLabel = startDate.toLocaleString('default', { 
+    month: 'short',
+    year: 'numeric'
+  })
+  
+  return `${startLabel} - Present`
 }
 
 export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'GroupDetails'>) => {
@@ -335,6 +358,9 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
                     density="medium"
                   />
                 </View>
+                <Text style={[styles.dateRange, { color: theme.text.secondary }]}>
+                  {getTimeframeLabel(timeframe)}
+                </Text>
                 <HeatmapView 
                   dailyCompletions={transformGroupStatsToHeatmapData(groupStats[groupId] || [])}
                   timeframe={timeframe}
@@ -397,21 +423,38 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   heatmapCard: {
-    borderRadius: 20,
     padding: 16,
-    marginBottom: 16,
+    borderRadius: 12,
+    marginBottom: 24,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
   },
   heatmapHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 8,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '600',
   },
   segmentedButtons: {
-    marginLeft: 'auto',
+    borderRadius: 20,
+    minHeight: 36,
+    overflow: 'hidden',
+    backgroundColor: '#FFF3E0',
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
+  },
+  dateRange: {
+    fontSize: 12,
+    marginBottom: 12,
   },
 }) 
