@@ -306,11 +306,36 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
   return (
     <ErrorBoundary>
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <GroupHeader
-          name={group.name}
-          code={group.code}
-          onBack={() => navigation.goBack()}
-        />
+        <View style={styles.headerContainer}>
+          <View style={styles.headerTop}>
+            <IconButton
+              icon="arrow-left"
+              size={24}
+              onPress={() => navigation.goBack()}
+              iconColor={theme.text.primary}
+              style={styles.backButton}
+            />
+            <Text style={[styles.headerTitle, { color: theme.text.primary }]}>
+              Group Details
+            </Text>
+          </View>
+          
+          <Surface style={[styles.headerCard, { backgroundColor: theme.surface }]}>
+            <Text variant="headlineMedium" style={[styles.groupName, { color: theme.text.primary }]}>
+              {group.name}
+            </Text>
+            <View style={styles.codeContainer}>
+              <Text style={[styles.codeLabel, { color: theme.text.secondary }]}>
+                Group Code:
+              </Text>
+              <View style={styles.codeBox}>
+                <Text style={[styles.codeText, { color: theme.text.primary }]}>
+                  {group.code}
+                </Text>
+              </View>
+            </View>
+          </Surface>
+        </View>
 
         <ScrollView 
           style={[styles.scrollView, { backgroundColor: theme.background }]}
@@ -456,5 +481,55 @@ const styles = StyleSheet.create({
   dateRange: {
     fontSize: 12,
     marginBottom: 12,
+  },
+  headerContainer: {
+    marginBottom: 16,
+  },
+  backButton: {
+    marginLeft: -8,
+    marginBottom: 8,
+  },
+  headerCard: {
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+  groupName: {
+    fontSize: 24,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  codeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  codeLabel: {
+    fontSize: 14,
+    marginRight: 8,
+  },
+  codeBox: {
+    backgroundColor: '#FFF3E0',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  codeText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  headerTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginLeft: 8,
   },
 }) 
