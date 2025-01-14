@@ -15,6 +15,7 @@
     "@react-navigation/bottom-tabs": "^6.5.8",
     "@react-navigation/native": "^6.1.7",
     "@react-navigation/native-stack": "^6.9.13",
+    "@shopify/flash-list": "1.4.0",
     "@supabase/supabase-js": "^2.26.0",
     "@types/react": "~18.0.27",
     "expo": "~48.0.0",
