@@ -47,7 +47,7 @@ export const GroupProgress: React.FC<GroupProgressProps> = ({
       <View style={styles.header}>
         <Text 
           variant="titleMedium" 
-          style={[styles.title, { color: '#5D4037' }]}
+          style={[styles.title, { color: theme.text.primary }]}
         >
           Group Progress
         </Text>
@@ -63,9 +63,9 @@ export const GroupProgress: React.FC<GroupProgressProps> = ({
           style={styles.timeframeButtons}
           theme={{
             colors: {
-              primary: '#F4511E',
-              secondaryContainer: '#FFF8E1',
-              onSecondaryContainer: '#5D4037',
+              primary: theme.primary,
+              secondaryContainer: '#FFE4B5',
+              onSecondaryContainer: theme.text.primary,
             }
           }}
         />
