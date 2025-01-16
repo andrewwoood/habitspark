@@ -73,7 +73,7 @@ export const AchievementsList = ({ currentStreak, achievements }: AchievementsLi
             style={styles.icon}
           />
           <Text style={[styles.empty, { color: theme.text.secondary }]}>
-            Keep going! First achievement at 3 days.
+            Keep going! Your first achievement is waiting.
           </Text>
         </Surface>
       )}

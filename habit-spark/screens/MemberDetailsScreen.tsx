@@ -155,7 +155,11 @@ export const MemberDetailsScreen = ({ navigation, route }: MemberDetailsScreenPr
           <Card style={[styles.statsCard, { backgroundColor: theme.surface }]}>
             <View style={styles.streakValue}>
               <Text style={[styles.statsValue, { color: theme.text.primary }]}>
-                {calculateStreak(statistics.dailyCompletions.map(d => d.date))}
+                {calculateStreak(
+                  statistics.dailyCompletions
+                    .filter(day => day.percentage > 0)
+                    .map(day => day.date)
+                )}
               </Text>
               <MaterialCommunityIcons 
                 name="fire" 
