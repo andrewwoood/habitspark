@@ -353,125 +353,127 @@ export const HomeScreen = ({ navigation }: NavigationProps) => {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text variant="headlineMedium" style={[styles.title, { color: theme.text.primary }]}>
-            Habits
-          </Text>
-        </View>
-        
-        {/* Fixed Content */}
-        <View style={styles.fixedContent}>
-          {/* Stats Cards */}
-          <View style={styles.statsGrid}>
-            <Surface style={[styles.statsCard, { backgroundColor: theme.surface }]}>
-              <Text 
-                style={[styles.statsValue, { color: theme.text.primary }]}
-              >
-                {formatPercentage(statistics.weeklyAverage)}
-              </Text>
-              <Text 
-                style={[styles.statsLabel, { color: theme.text.secondary }]}
-              >
-                Last 7 Days
-              </Text>
-            </Surface>
-
-            <Surface style={[styles.statsCard, { backgroundColor: theme.surface }]}>
-              <View style={styles.streakValue}>
-                <Text style={[styles.statsValue, { color: theme.text.primary }]}>
-                  {currentStreak}
-                </Text>
-                <MaterialCommunityIcons 
-                  name="fire" 
-                  size={24} 
-                  color={theme.accent}
-                  style={styles.fireIcon} 
-                />
-              </View>
-              <Text style={[styles.statsLabel, { color: theme.text.secondary }]}>
-                Current Streak
-              </Text>
-            </Surface>
-          </View>
-
-          {/* Heatmap Section */}
-          <Surface style={[styles.heatmapCard, { backgroundColor: theme.surface }]}>
-            <View style={styles.heatmapHeader}>
-              <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Your Progress</Text>
-              <SegmentedButtons
-                value={timeframe}
-                onValueChange={setTimeframe}
-                buttons={[
-                  { value: '1m', label: '1M' },
-                  { value: '3m', label: '3M' },
-                  { value: '6m', label: '6M' },
-                ]}
-                style={[styles.segmentedButtons]}
-                theme={{
-                  colors: {
-                    primary: theme.primary,
-                    secondaryContainer: '#FFE4B5',
-                    onSecondaryContainer: theme.text.primary,
-                    onSurface: theme.text.secondary,
-                    outline: 'transparent',
-                    surface: '#FFF3E0',
-                  },
-                  roundness: 20,
-                }}
-                density="medium"
-              />
-            </View>
-            <Text style={[styles.dateRange, { color: theme.text.secondary }]}>
-              {getTimeframeLabel(timeframe)}
+      <View style={styles.webContainer}>
+        <View style={[styles.container, styles.contentConstraint]}>
+          <View style={styles.header}>
+            <Text variant="headlineMedium" style={[styles.title, { color: theme.text.primary }]}>
+              Habits
             </Text>
-            <HeatmapView 
-              dailyCompletions={statistics.dailyCompletions} 
-              timeframe={timeframe}
-              theme={theme}
-              isDark={isDark}
-            />
-          </Surface>
-        </View>
-
-        {/* Scrollable Habits List */}
-        <View style={styles.habitsContainer}>
-          <View style={styles.habitsHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Today's Habits</Text>
-            <Button 
-              mode="contained"
-              icon="plus"
-              onPress={showModal}
-              style={[styles.addButton]}
-              labelStyle={[styles.addButtonLabel]}
-              buttonColor="#FFE4B5"
-              textColor={theme.text.primary}
-            >
-              Add Habit
-            </Button>
           </View>
-
-          <ScrollView 
-            style={styles.habitsList}
-            contentContainerStyle={styles.habitsListContent}
-            showsVerticalScrollIndicator={false}
-          >
-            {habits.length === 0 ? (
-              <Surface style={[styles.emptyCard, { backgroundColor: theme.surface }]}>
-                <Text style={[styles.emptyText, { color: theme.text.secondary }]}>
-                  Add your first habit above 👆
+          
+          {/* Fixed Content */}
+          <View style={styles.fixedContent}>
+            {/* Stats Cards */}
+            <View style={styles.statsGrid}>
+              <Surface style={[styles.statsCard, { backgroundColor: theme.surface }]}>
+                <Text 
+                  style={[styles.statsValue, { color: theme.text.primary }]}
+                >
+                  {formatPercentage(statistics.weeklyAverage)}
+                </Text>
+                <Text 
+                  style={[styles.statsLabel, { color: theme.text.secondary }]}
+                >
+                  Last 7 Days
                 </Text>
               </Surface>
-            ) : (
-              <View style={styles.habitsGrid}>
-                {habits.map(habit => (
-                  <View key={habit.id}>
-                    {renderHabitItem(habit)}
-                  </View>
-                ))}
+
+              <Surface style={[styles.statsCard, { backgroundColor: theme.surface }]}>
+                <View style={styles.streakValue}>
+                  <Text style={[styles.statsValue, { color: theme.text.primary }]}>
+                    {currentStreak}
+                  </Text>
+                  <MaterialCommunityIcons 
+                    name="fire" 
+                    size={24} 
+                    color={theme.accent}
+                    style={styles.fireIcon} 
+                  />
+                </View>
+                <Text style={[styles.statsLabel, { color: theme.text.secondary }]}>
+                  Current Streak
+                </Text>
+              </Surface>
+            </View>
+
+            {/* Heatmap Section */}
+            <Surface style={[styles.heatmapCard, { backgroundColor: theme.surface }]}>
+              <View style={styles.heatmapHeader}>
+                <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Your Progress</Text>
+                <SegmentedButtons
+                  value={timeframe}
+                  onValueChange={setTimeframe}
+                  buttons={[
+                    { value: '1m', label: '1M' },
+                    { value: '3m', label: '3M' },
+                    { value: '6m', label: '6M' },
+                  ]}
+                  style={[styles.segmentedButtons]}
+                  theme={{
+                    colors: {
+                      primary: theme.primary,
+                      secondaryContainer: '#FFE4B5',
+                      onSecondaryContainer: theme.text.primary,
+                      onSurface: theme.text.secondary,
+                      outline: 'transparent',
+                      surface: '#FFF3E0',
+                    },
+                    roundness: 20,
+                  }}
+                  density="medium"
+                />
               </View>
-            )}
-          </ScrollView>
+              <Text style={[styles.dateRange, { color: theme.text.secondary }]}>
+                {getTimeframeLabel(timeframe)}
+              </Text>
+              <HeatmapView 
+                dailyCompletions={statistics.dailyCompletions} 
+                timeframe={timeframe}
+                theme={theme}
+                isDark={isDark}
+              />
+            </Surface>
+          </View>
+
+          {/* Scrollable Habits List */}
+          <View style={styles.habitsContainer}>
+            <View style={styles.habitsHeader}>
+              <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Today's Habits</Text>
+              <Button 
+                mode="contained"
+                icon="plus"
+                onPress={showModal}
+                style={[styles.addButton]}
+                labelStyle={[styles.addButtonLabel]}
+                buttonColor="#FFE4B5"
+                textColor={theme.text.primary}
+              >
+                Add Habit
+              </Button>
+            </View>
+
+            <ScrollView 
+              style={styles.habitsList}
+              contentContainerStyle={styles.habitsListContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {habits.length === 0 ? (
+                <Surface style={[styles.emptyCard, { backgroundColor: theme.surface }]}>
+                  <Text style={[styles.emptyText, { color: theme.text.secondary }]}>
+                    Add your first habit above 👆
+                  </Text>
+                </Surface>
+              ) : (
+                <View style={styles.habitsGrid}>
+                  {habits.map(habit => (
+                    <View key={habit.id}>
+                      {renderHabitItem(habit)}
+                    </View>
+                  ))}
+                </View>
+              )}
+            </ScrollView>
+          </View>
         </View>
       </View>
 
@@ -868,5 +870,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  webContainer: {
+    flex: 1,
+    alignItems: 'center',
+    width: '100%',
+  },
+  contentConstraint: {
+    maxWidth: 800,
+    width: '100%',
   },
 }) 
