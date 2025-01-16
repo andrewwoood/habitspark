@@ -64,41 +64,7 @@ export const useGroupStore = create<GroupState>((set, get) => ({
       const userId = (await supabase.auth.getUser()).data.user?.id
       const formattedCode = code.trim().toUpperCase()
       
-      // First create the RPC function in Supabase:
-      // Create this SQL function in Supabase:
-      /*
-      create or replace function join_group(group_code text, user_id uuid)
-      returns json language plpgsql security definer as $$
-      declare
-        target_group groups;
-        updated_group groups;
-      begin
-        -- Get the group
-        select * into target_group from groups where code = group_code;
-        
-        if target_group is null then
-          raise exception 'Group not found';
-        end if;
-        
-        -- Check if already a member
-        if user_id = any(target_group.members) then
-          raise exception 'Already a member';
-        end if;
-        
-        -- Update the group
-        update groups 
-        set members = array_append(members, user_id)
-        where id = target_group.id
-        returning * into updated_group;
-        
-        return row_to_json(updated_group);
-      end;
-      $$;
-      
-      grant execute on function join_group(text, uuid) to authenticated;
-      */
-
-      // Then use it in the code:
+      // Get group from RPC
       const { data: updatedGroup, error } = await supabase
         .rpc('join_group', {
           group_code: formattedCode,
@@ -108,9 +74,18 @@ export const useGroupStore = create<GroupState>((set, get) => ({
       if (error) throw error
       if (!updatedGroup) throw new Error('Failed to join group')
 
-      // Update local state
+      // Fetch completion rate for the new group
+      const completion_rate = await fetchGroupCompletionRates(updatedGroup.id)
+      
+      // Combine group data with completion rate
+      const groupWithStats = {
+        ...updatedGroup,
+        completion_rate
+      }
+
+      // Update local state with complete data
       set(state => ({
-        groups: [...state.groups, updatedGroup]
+        groups: [...state.groups, groupWithStats]
       }))
     } catch (error: any) {
       console.error('Join group error:', error)
