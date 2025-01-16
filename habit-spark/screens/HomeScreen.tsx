@@ -337,6 +337,12 @@ export const HomeScreen = ({ navigation }: NavigationProps) => {
     }
   }
 
+  // Add a helper function to format the percentage
+  const formatPercentage = (value: number | undefined) => {
+    if (value === undefined || isNaN(value)) return '0%'
+    return `${Math.round(value)}%`
+  }
+
   if (loading && !habits.length) {
     return (
       <View style={styles.centered}>
@@ -359,10 +365,14 @@ export const HomeScreen = ({ navigation }: NavigationProps) => {
           {/* Stats Cards */}
           <View style={styles.statsGrid}>
             <Surface style={[styles.statsCard, { backgroundColor: theme.surface }]}>
-              <Text style={[styles.statsValue, { color: theme.text.primary }]}>
-                {statistics.completionRate}%
+              <Text 
+                style={[styles.statsValue, { color: theme.text.primary }]}
+              >
+                {formatPercentage(statistics.weeklyAverage)}
               </Text>
-              <Text style={[styles.statsLabel, { color: theme.text.secondary }]}>
+              <Text 
+                style={[styles.statsLabel, { color: theme.text.secondary }]}
+              >
                 Last 7 Days
               </Text>
             </Surface>

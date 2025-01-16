@@ -1,54 +1,41 @@
 export interface HabitStatistics {
-  completionRate: number  // Percentage of days with completed habits
-  totalCompletions: number
-  thisWeekCompletions: number
-  thisMonthCompletions: number
-  dailyCompletions: { date: string; percentage: number }[]
+  dailyCompletions: Array<{
+    date: string
+    percentage: number
+  }>
+  weeklyAverage: number
+  monthlyAverage: number
 }
 
-export const calculateStatistics = (completedDates: string[], totalHabits: number) => {
-  const now = new Date()
-  const todayStr = now.toISOString().split('T')[0]
-  
-  // Get last year of dates
-  const oneYearAgo = new Date(now)
-  oneYearAgo.setFullYear(now.getFullYear() - 1)
-  
-  const lastYear = []
-  for (let d = new Date(oneYearAgo); d <= now; d.setDate(d.getDate() + 1)) {
-    lastYear.push(d.toISOString().split('T')[0])
+export const calculateStatistics = (dates: string[], totalHabits: number): HabitStatistics => {
+  // Handle empty cases first
+  if (totalHabits === 0) {
+    return {
+      dailyCompletions: [],
+      weeklyAverage: 0,
+      monthlyAverage: 0
+    }
   }
 
-  // Normalize dates
-  const normalizedDates = completedDates
-    .map(date => new Date(date).toISOString().split('T')[0])
-    .filter(date => date <= todayStr)
+  // Group dates by day
+  const completionsByDay = dates.reduce((acc, date) => {
+    acc[date] = (acc[date] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
 
   // Calculate daily completion percentages
-  const dailyCompletions = lastYear.map(date => {
-    const completionsForDay = normalizedDates.filter(d => d === date).length
-    return {
-      date,
-      percentage: (completionsForDay / totalHabits) * 100
-    }
-  })
+  const dailyCompletions = Object.entries(completionsByDay).map(([date, completions]) => ({
+    date,
+    percentage: Math.min((completions / totalHabits) * 100, 100) // Cap at 100%
+  }))
 
-  // Calculate last 7 days completion rate
-  const last7Days = dailyCompletions.slice(-7)
-  const last7DaysCompletions = last7Days.reduce((sum, day) => sum + day.percentage, 0) / 7
-
-  // Calculate this week's completions
-  const thisWeekCompletions = normalizedDates.filter(date => {
-    const d = new Date(date)
-    const today = new Date(now)
-    const weekStart = new Date(today.setDate(today.getDate() - today.getDay()))
-    return d >= weekStart && d <= now
-  }).length
+  // Calculate averages
+  const totalPercentage = dailyCompletions.reduce((sum, day) => sum + day.percentage, 0)
+  const daysWithData = dailyCompletions.length || 1 // Prevent division by zero
 
   return {
-    totalCompletions: new Set(normalizedDates).size,
-    thisWeekCompletions,
-    completionRate: Math.round(last7DaysCompletions),
-    dailyCompletions
+    dailyCompletions,
+    weeklyAverage: Math.round(totalPercentage / daysWithData),
+    monthlyAverage: Math.round(totalPercentage / daysWithData)
   }
 } 
