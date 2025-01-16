@@ -116,7 +116,11 @@ export const MemberDetailsScreen = ({ navigation, route }: MemberDetailsScreenPr
         </Text>
       </View>
 
-      <ScrollView>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <Card style={[styles.card, { backgroundColor: theme.surface }]}>
           <Card.Content style={styles.cardContent}>
             <Avatar.Image 
@@ -341,5 +345,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '400',
     flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 24,
   },
 }) 
