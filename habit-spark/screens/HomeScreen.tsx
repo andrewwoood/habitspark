@@ -379,7 +379,9 @@ export const HomeScreen = ({ navigation }: NavigationProps) => {
 
             <Surface style={[styles.statsCard, { backgroundColor: theme.surface }]}>
               <View style={styles.streakValue}>
-                <Text style={[styles.statsValue, { color: theme.text.primary }]}>{longestStreak}</Text>
+                <Text style={[styles.statsValue, { color: theme.text.primary }]}>
+                  {currentStreak}
+                </Text>
                 <MaterialCommunityIcons 
                   name="fire" 
                   size={24} 
@@ -387,7 +389,9 @@ export const HomeScreen = ({ navigation }: NavigationProps) => {
                   style={styles.fireIcon} 
                 />
               </View>
-              <Text style={[styles.statsLabel, { color: theme.text.secondary }]}>Longest Streak</Text>
+              <Text style={[styles.statsLabel, { color: theme.text.secondary }]}>
+                Current Streak
+              </Text>
             </Surface>
           </View>
 

@@ -18,13 +18,12 @@ interface HabitState {
   habits: Habit[]
   loading: boolean
   error: string | null
-  bestStreak: number
   currentStreak: number
-  previousStreak: number
   createHabit: (name: string) => Promise<void>
   fetchHabits: () => Promise<void>
   toggleHabit: (habitId: string, date: string) => Promise<void>
-  updateBestStreak: (streak: number) => Promise<void>
+  updateStreak: () => Promise<void>
+  calculateCurrentStreak: () => number
   addHabit: (habit: { name: string, description: string, frequency: string }) => Promise<void>
   updateHabit: (habitId: string, updates: { name: string }) => Promise<void>
   deleteHabit: (habitId: string) => Promise<void>
@@ -35,9 +34,7 @@ export const useHabitStore = create<HabitState>((set, get) => ({
   habits: [],
   loading: false,
   error: null,
-  bestStreak: 0,
   currentStreak: 0,
-  previousStreak: 0,
   createHabit: async (name: string) => {
     try {
       set({ loading: true, error: null })
@@ -93,10 +90,6 @@ export const useHabitStore = create<HabitState>((set, get) => ({
         ? completedDates.filter(d => d !== date)
         : [...completedDates, date].sort()
 
-      console.log('Updating habit:', habitId)
-      console.log('Previous completed dates:', completedDates)
-      console.log('New completed dates:', newCompletedDates)
-
       const { data, error } = await supabase
         .from('habits')
         .update({ completed_dates: newCompletedDates })
@@ -104,14 +97,15 @@ export const useHabitStore = create<HabitState>((set, get) => ({
         .select()
 
       if (error) throw error
-      
-      console.log('Supabase update response:', data)
 
       set(state => ({
         habits: state.habits.map(h =>
           h.id === habitId ? { ...h, completed_dates: newCompletedDates } : h
         ),
       }))
+
+      // Update streak after habit is toggled
+      await get().updateStreak()
     } catch (error: any) {
       console.error('Error in toggleHabit:', error)
       set({ error: error.message })
@@ -119,22 +113,37 @@ export const useHabitStore = create<HabitState>((set, get) => ({
       set({ loading: false })
     }
   },
-  updateBestStreak: async (streak: number) => {
+  updateStreak: async () => {
     try {
-      if (streak <= get().bestStreak) return
-      
-      const { error } = await supabase
-        .from('user_stats')
-        .upsert({ 
-          user_id: (await supabase.auth.getUser()).data.user?.id,
-          best_streak: streak 
-        })
-
-      if (error) throw error
-      set({ bestStreak: streak })
+      const newStreak = get().calculateCurrentStreak()
+      set({ currentStreak: newStreak })
     } catch (error: any) {
+      console.error('Error updating streak:', error)
       set({ error: error.message })
     }
+  },
+  calculateCurrentStreak: () => {
+    const habits = get().habits
+    if (!habits.length) return 0
+
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    
+    let currentDate = new Date(today)
+    let streak = 0
+
+    while (true) {
+      const dateStr = currentDate.toISOString().split('T')[0]
+      const allCompleted = habits.every(habit => 
+        habit.completed_dates?.includes(dateStr)
+      )
+
+      if (!allCompleted) break
+      streak++
+      currentDate.setDate(currentDate.getDate() - 1)
+    }
+
+    return streak
   },
   addHabit: async (habit) => {
     try {
