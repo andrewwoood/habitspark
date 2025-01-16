@@ -85,97 +85,96 @@ export const LoginScreen = ({ navigation }: NavigationProps) => {
             variant="bodyLarge" 
             style={[styles.subtitle, { color: theme.text.secondary }]}
           >
-            Track your habits, achieve your goals, and spark positive change
+            Track habits, achieve your goals, and spark positive change with your friends
           </Text>
         </View>
 
-        {/* Form Section */}
-        <View style={styles.formSection}>
-          <TextInput
-            label="Email"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            style={styles.input}
-            mode="outlined"
-            outlineColor="transparent"
-            activeOutlineColor={theme.primary}
-            textColor={theme.text.primary}
-            placeholderTextColor={theme.text.secondary}
-            theme={{
-              colors: {
-                background: 'white',
-                onSurfaceVariant: theme.text.secondary,
-              },
-            }}
-          />
-          <TextInput
-            label="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            style={styles.input}
-            mode="outlined"
-            outlineColor="transparent"
-            activeOutlineColor={theme.primary}
-            textColor={theme.text.primary}
-            placeholderTextColor={theme.text.secondary}
-            theme={{
-              colors: {
-                background: 'white',
-                onSurfaceVariant: theme.text.secondary,
-              },
-            }}
-          />
-          <Button 
-            mode="contained" 
-            onPress={handleLogin}
-            loading={loading}
-            style={styles.loginButton}
-            buttonColor="#F4A460"
-            textColor="white"
-            labelStyle={styles.buttonLabel}
-          >
-            Login
-          </Button>
+        {/* Form Section - now wrapped in a white surface */}
+        <View style={[styles.formCard, { backgroundColor: theme.surface }]}>
+          <View style={styles.formSection}>
+            <TextInput
+              label="Email"
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              style={styles.input}
+              mode="outlined"
+              outlineColor={theme.primary}
+              activeOutlineColor={theme.primary}
+              textColor={theme.text.primary}
+              theme={{
+                colors: {
+                  background: theme.surface,
+                  onSurfaceVariant: '#666666', // Grey text for label
+                },
+              }}
+            />
+            <TextInput
+              label="Password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              style={styles.input}
+              mode="outlined"
+              outlineColor={theme.primary}
+              activeOutlineColor={theme.primary}
+              textColor={theme.text.primary}
+              theme={{
+                colors: {
+                  background: theme.surface,
+                  onSurfaceVariant: '#666666', // Grey text for label
+                },
+              }}
+            />
+            <Button 
+              mode="contained" 
+              onPress={handleLogin}
+              loading={loading}
+              style={styles.loginButton}
+              buttonColor={theme.primary}
+              textColor="white"
+              labelStyle={styles.buttonLabel}
+            >
+              Login
+            </Button>
 
-          <View style={styles.divider}>
-            <View style={[styles.dividerLine, { backgroundColor: theme.text.disabled }]} />
-            <Text style={[styles.dividerText, { color: theme.text.secondary }]}>or</Text>
-            <View style={[styles.dividerLine, { backgroundColor: theme.text.disabled }]} />
+            <View style={styles.divider}>
+              <View style={[styles.dividerLine, { backgroundColor: theme.primary }]} />
+              <Text style={[styles.dividerText, { color: theme.text.secondary }]}>or</Text>
+              <View style={[styles.dividerLine, { backgroundColor: theme.primary }]} />
+            </View>
+
+            <Button 
+              mode="outlined"
+              onPress={handleGoogleSignIn}
+              disabled={!request || loading}
+              style={styles.googleButton}
+              textColor="#757575" // Google's text color
+              labelStyle={styles.buttonLabel}
+              icon={({ size }) => (
+                <View style={styles.googleIconContainer}>
+                  <MaterialCommunityIcons 
+                    name="google" 
+                    size={size} 
+                    color={theme.primary}
+                    style={styles.googleIcon}
+                  />
+                </View>
+              )}
+            >
+              Sign in with Google
+            </Button>
+
+            <Button 
+              mode="text" 
+              onPress={() => navigation.navigate('SignUp')}
+              style={styles.signUpButton}
+              textColor={theme.primary}
+              labelStyle={styles.linkLabel}
+            >
+              Don't have an account? Sign Up
+            </Button>
           </View>
-
-          <Button 
-            mode="outlined"
-            onPress={handleGoogleSignIn}
-            disabled={!request || loading}
-            style={[styles.googleButton, { borderColor: theme.text.disabled }]}
-            textColor={theme.text.primary}
-            labelStyle={styles.buttonLabel}
-            icon={({ size }) => (
-              <MaterialCommunityIcons 
-                name="google" 
-                size={size} 
-                color={theme.text.primary} 
-                style={styles.googleIcon}
-              />
-            )}
-          >
-            Sign in with Google
-          </Button>
-        </View>
-
-        {/* Footer Section */}
-        <View style={styles.footerSection}>
-          <Button 
-            mode="text" 
-            onPress={() => navigation.navigate('SignUp')}
-            style={styles.signUpButton}
-            textColor={theme.primary}
-            labelStyle={styles.linkLabel}
-          >
-            Don't have an account? Sign Up
-          </Button>
         </View>
       </View>
     </SafeAreaView>
@@ -213,14 +212,26 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     maxWidth: 300,
   },
-  formSection: {
+  formCard: {
+    padding: 24,
+    borderRadius: 12,
     width: '100%',
     marginBottom: 24,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  formSection: {
+    width: '100%',
   },
   input: {
     marginBottom: 16,
-    backgroundColor: 'white',
-    borderRadius: 8,
+    backgroundColor: 'transparent',
     height: 56,
   },
   loginButton: {
@@ -246,6 +257,7 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
+    opacity: 0.5,
   },
   dividerText: {
     marginHorizontal: 16,
@@ -256,13 +268,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     height: 48,
     borderWidth: 1,
+    borderColor: '#dadce0', // Google's border color
     backgroundColor: 'white',
+  },
+  googleIconContainer: {
+    marginRight: 8,
   },
   googleIcon: {
     marginRight: 8,
-  },
-  footerSection: {
-    alignItems: 'center',
   },
   signUpButton: {
     marginTop: 'auto',

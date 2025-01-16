@@ -10,6 +10,7 @@ export const lightTheme = {
     header: '#92400e',       // text-amber-800 used in headers
     card: '#92400e',         // text-amber-800 used in cards
     streak: '#d97706',       // text-amber-600 used for interactive elements
+    disabled: '#d1d5db',     // gray-300 for disabled/muted text
   },
   border: '#fde68a',         // border-amber-200
   shadow: {
@@ -27,6 +28,7 @@ export const darkTheme = {
   text: {
     primary: '#FFB74D',      // Light amber
     secondary: '#FFA726',    // Medium amber
+    disabled: '#6b7280',     // gray-500 for disabled/muted text in dark mode
   },
   border: '#2D2D2D',
   shadow: {
