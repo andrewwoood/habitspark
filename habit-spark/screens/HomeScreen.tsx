@@ -455,7 +455,7 @@ export const HomeScreen = ({ navigation }: NavigationProps) => {
             {habits.length === 0 ? (
               <Surface style={[styles.emptyCard, { backgroundColor: theme.surface }]}>
                 <Text style={[styles.emptyText, { color: theme.text.secondary }]}>
-                  Add your first habit
+                  Add your first habit above 👆
                 </Text>
               </Surface>
             ) : (
