@@ -246,7 +246,7 @@ export const ProfileScreen = ({ navigation }: NavigationProps) => {
                 style={[styles.modalButton, { backgroundColor: '#F4A460' }]}
                 labelStyle={{ color: 'white' }}
               >
-                Save Display Name
+                Save
               </Button>
             </View>
           </View>
