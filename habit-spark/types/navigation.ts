@@ -9,6 +9,11 @@ export type RootStackParamList = {
   CreateHabit: undefined
   GroupDetails: { groupId: string }
   MainTabs: undefined
+  MemberDetails: {
+    memberId: string
+    displayName: string
+    avatarUrl: string
+  }
 }
 
 export type NavigationProps<T extends keyof RootStackParamList = never> = NativeStackScreenProps<

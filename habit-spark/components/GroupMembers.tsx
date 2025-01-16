@@ -1,9 +1,12 @@
 import React, { useState } from 'react'
-import { View, StyleSheet } from 'react-native'
-import { Text, Surface, List, Avatar, IconButton } from 'react-native-paper'
+import { View, StyleSheet, TouchableOpacity } from 'react-native'
+import { Text, Surface, List, Avatar, IconButton, Card } from 'react-native-paper'
 import { FlashList } from '@shopify/flash-list'
 import { useAppTheme } from '../theme/ThemeContext'
 import { MemberSkeleton } from './MemberSkeleton'
+import { useNavigation } from '@react-navigation/native'
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
+import type { RootStackParamList } from '../types/navigation'
 
 interface MemberProfile {
   display_name: string
@@ -20,6 +23,8 @@ interface GroupMembersProps {
   loadingProfiles: boolean
 }
 
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>
+
 const MemberItem = React.memo(({ 
   memberId,
   profile,
@@ -27,6 +32,7 @@ const MemberItem = React.memo(({
   currentUserId,
   onKickMember,
   kickingMemberId,
+  onMemberPress
 }: {
   memberId: string
   profile: MemberProfile
@@ -34,37 +40,40 @@ const MemberItem = React.memo(({
   currentUserId?: string
   onKickMember: (id: string) => void
   kickingMemberId: string | null
+  onMemberPress: (memberId: string) => void
 }) => {
   const { theme } = useAppTheme()
 
   return (
-    <List.Item
-      title={profile?.display_name || 'Anonymous User'}
-      titleStyle={{ color: theme.text.primary }}
-      left={() => (
-        <Avatar.Image
-          size={40}
-          source={{ 
-            uri: profile?.avatar_url || 
-              `https://api.dicebear.com/7.x/bottts/svg?seed=${memberId}`
-          }}
-        />
-      )}
-      right={() => 
-        isGroupCreator && memberId !== currentUserId ? (
-          <IconButton 
-            icon="account-remove"
-            iconColor={theme.text.primary}
-            onPress={() => {
-              onKickMember(memberId)
+    <TouchableOpacity onPress={() => onMemberPress(memberId)}>
+      <List.Item
+        title={profile?.display_name || 'Anonymous User'}
+        titleStyle={{ color: theme.text.primary }}
+        left={() => (
+          <Avatar.Image
+            size={40}
+            source={{ 
+              uri: profile?.avatar_url || 
+                `https://api.dicebear.com/7.x/bottts/svg?seed=${memberId}`
             }}
-            disabled={kickingMemberId === memberId}
-            loading={kickingMemberId === memberId}
           />
-        ) : null
-      }
-      style={styles.memberItem}
-    />
+        )}
+        right={() => 
+          isGroupCreator && memberId !== currentUserId ? (
+            <IconButton 
+              icon="account-remove"
+              iconColor={theme.text.primary}
+              onPress={() => {
+                onKickMember(memberId)
+              }}
+              disabled={kickingMemberId === memberId}
+              loading={kickingMemberId === memberId}
+            />
+          ) : null
+        }
+        style={styles.memberItem}
+      />
+    </TouchableOpacity>
   )
 })
 
@@ -77,9 +86,19 @@ export const GroupMembers: React.FC<GroupMembersProps> = ({
   kickingMemberId,
   loadingProfiles,
 }) => {
+  const navigation = useNavigation<NavigationProp>()
   const { theme } = useAppTheme()
 
   const [error, setError] = useState<string | null>(null)
+
+  const handleMemberPress = (memberId: string) => {
+    const profile = memberProfiles[memberId]
+    navigation.navigate('MemberDetails', {
+      memberId,
+      displayName: profile?.display_name || 'Anonymous User',
+      avatarUrl: profile?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${memberId}`
+    })
+  }
 
   const renderItem = React.useCallback(({ item: memberId }: { item: string }) => (
     <MemberItem
@@ -89,8 +108,9 @@ export const GroupMembers: React.FC<GroupMembersProps> = ({
       currentUserId={currentUserId}
       onKickMember={onKickMember}
       kickingMemberId={kickingMemberId}
+      onMemberPress={handleMemberPress}
     />
-  ), [memberProfiles, isGroupCreator, currentUserId, onKickMember, kickingMemberId])
+  ), [memberProfiles, isGroupCreator, currentUserId, onKickMember, kickingMemberId, handleMemberPress])
 
   const keyExtractor = React.useCallback((memberId: string) => memberId, [])
 

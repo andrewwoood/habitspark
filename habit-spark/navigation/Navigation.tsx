@@ -10,6 +10,7 @@ import { LoginScreen } from '../screens/LoginScreen'
 import { SignUpScreen } from '../screens/SignUpScreen'
 import { ProfileScreen } from '../screens/ProfileScreen'
 import { GroupDetailsScreen } from '../screens/GroupDetailsScreen'
+import { MemberDetailsScreen } from '../screens/MemberDetailsScreen'
 import { View, TouchableOpacity, Text } from 'react-native'
 
 const Tab = createBottomTabNavigator()
@@ -132,6 +133,8 @@ const MainStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="MainTabs" component={MainTabs} />
     <Stack.Screen name="CreateHabit" component={CreateHabitScreen} />
+    <Stack.Screen name="GroupDetails" component={GroupDetailsScreen} />
+    <Stack.Screen name="MemberDetails" component={MemberDetailsScreen} />
   </Stack.Navigator>
 )
 
