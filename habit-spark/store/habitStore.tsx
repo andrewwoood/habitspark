@@ -58,14 +58,25 @@ export const useHabitStore = create<HabitState>((set, get) => ({
   fetchHabits: async () => {
     try {
       set({ loading: true, error: null })
+      
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('No user found')
+
+      console.log('Fetching habits for user:', user.id)
+      
       const { data: habits, error } = await supabase
         .from('habits')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      set({ habits })
+      
+      console.log('Fetched habits:', habits)
+      
+      set({ habits: habits || [] })
     } catch (error: any) {
+      console.error('Error in fetchHabits:', error)
       set({ error: error.message })
     } finally {
       set({ loading: false })
@@ -80,42 +91,29 @@ export const useHabitStore = create<HabitState>((set, get) => ({
       const completedDates = habit.completed_dates || []
       const newCompletedDates = completedDates.includes(date)
         ? completedDates.filter(d => d !== date)
-        : [...completedDates, date]
+        : [...completedDates, date].sort()
 
-      const { error } = await supabase
+      console.log('Updating habit:', habitId)
+      console.log('Previous completed dates:', completedDates)
+      console.log('New completed dates:', newCompletedDates)
+
+      const { data, error } = await supabase
         .from('habits')
         .update({ completed_dates: newCompletedDates })
         .eq('id', habitId)
+        .select()
 
       if (error) throw error
+      
+      console.log('Supabase update response:', data)
+
       set(state => ({
         habits: state.habits.map(h =>
           h.id === habitId ? { ...h, completed_dates: newCompletedDates } : h
         ),
       }))
-
-      const prevAchievements = getUnlockedAchievements(get().previousStreak)
-      const newAchievements = getUnlockedAchievements(get().currentStreak)
-      
-      if (newAchievements.length > prevAchievements.length) {
-        const latestAchievement = newAchievements[newAchievements.length - 1]
-        const toastConfig = {
-          type: 'success',
-          props: {
-            achievement: latestAchievement
-          },
-          position: 'top',
-          visibilityTime: 4000,
-          autoHide: true,
-          customComponent: () => React.createElement(AchievementToast, { 
-            achievement: latestAchievement 
-          })
-        }
-        Toast.show(toastConfig)
-      }
-      
-      set({ previousStreak: get().currentStreak })
     } catch (error: any) {
+      console.error('Error in toggleHabit:', error)
       set({ error: error.message })
     } finally {
       set({ loading: false })
