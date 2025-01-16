@@ -136,184 +136,186 @@ export const GroupScreen = ({ navigation }: NavigationProps) => {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text variant="headlineMedium" style={[styles.title, { color: theme.text.primary }]}>
-            Groups
+      <View style={styles.webContainer}>
+        <View style={[styles.container, styles.contentConstraint]}>
+          <View style={styles.header}>
+            <Text variant="headlineMedium" style={[styles.title, { color: theme.text.primary }]}>
+              Groups
+            </Text>
+          </View>
+
+          <View style={styles.buttonContainer}>
+            <Button
+              mode="contained"
+              onPress={() => setIsModalVisible(true)}
+              style={[styles.createButton]}
+              icon="plus"
+              labelStyle={{ fontSize: 16 }}
+              buttonColor="#F4A460"
+            >
+              Create New Group
+            </Button>
+            <Button
+              mode="outlined"
+              onPress={() => setJoinDialogVisible(true)}
+              style={styles.joinButton}
+              icon="account-group"
+              textColor="#F4A460"
+            >
+              Join Group
+            </Button>
+          </View>
+
+          <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>
+            Your Groups
           </Text>
-        </View>
 
-        <View style={styles.buttonContainer}>
-          <Button
-            mode="contained"
-            onPress={() => setIsModalVisible(true)}
-            style={[styles.createButton]}
-            icon="plus"
-            labelStyle={{ fontSize: 16 }}
-            buttonColor="#F4A460"
-          >
-            Create New Group
-          </Button>
-          <Button
-            mode="outlined"
-            onPress={() => setJoinDialogVisible(true)}
-            style={styles.joinButton}
-            icon="account-group"
-            textColor="#F4A460"
-          >
-            Join Group
-          </Button>
-        </View>
+          {error && (
+            <Text style={[styles.error, { color: theme.error }]}>
+              {error}
+            </Text>
+          )}
 
-        <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>
-          Your Groups
-        </Text>
+          <ScrollView style={styles.groupsList}>
+            {groups.map(group => renderGroupCard(group))}
+          </ScrollView>
 
-        {error && (
-          <Text style={[styles.error, { color: theme.error }]}>
-            {error}
-          </Text>
-        )}
-
-        <ScrollView style={styles.groupsList}>
-          {groups.map(group => renderGroupCard(group))}
-        </ScrollView>
-
-        <Portal>
-          <Modal
-            visible={isModalVisible}
-            onDismiss={() => {
-              setIsModalVisible(false)
-              setNewGroupName('')
-            }}
-            contentContainerStyle={[
-              styles.modalContainer,
-              { backgroundColor: theme.background }
-            ]}
-          >
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text 
-                  style={[styles.modalTitle, { color: theme.text.primary }]}
-                >
-                  Create New Group
-                </Text>
-                <IconButton
-                  icon="close"
-                  size={24}
-                  onPress={() => {
-                    setIsModalVisible(false)
-                    setNewGroupName('')
-                  }}
-                  iconColor={theme.text.primary}
+          <Portal>
+            <Modal
+              visible={isModalVisible}
+              onDismiss={() => {
+                setIsModalVisible(false)
+                setNewGroupName('')
+              }}
+              contentContainerStyle={[
+                styles.modalContainer,
+                { backgroundColor: theme.background }
+              ]}
+            >
+              <View style={styles.modalContent}>
+                <View style={styles.modalHeader}>
+                  <Text 
+                    style={[styles.modalTitle, { color: theme.text.primary }]}
+                  >
+                    Create New Group
+                  </Text>
+                  <IconButton
+                    icon="close"
+                    size={24}
+                    onPress={() => {
+                      setIsModalVisible(false)
+                      setNewGroupName('')
+                    }}
+                    iconColor={theme.text.primary}
+                  />
+                </View>
+                
+                <TextInput
+                  mode="outlined"
+                  placeholder="Enter group name..."
+                  value={newGroupName}
+                  onChangeText={setNewGroupName}
+                  style={styles.modalInput}
+                  outlineColor="transparent"
+                  activeOutlineColor={theme.primary}
+                  textColor={theme.text.primary}
+                  onSubmitEditing={handleCreateGroup}
                 />
-              </View>
-              
-              <TextInput
-                mode="outlined"
-                placeholder="Enter group name..."
-                value={newGroupName}
-                onChangeText={setNewGroupName}
-                style={styles.modalInput}
-                outlineColor="transparent"
-                activeOutlineColor={theme.primary}
-                textColor={theme.text.primary}
-                onSubmitEditing={handleCreateGroup}
-              />
 
-              <View style={styles.modalActions}>
-                <Button
-                  mode="text"
-                  onPress={() => {
-                    setIsModalVisible(false)
-                    setNewGroupName('')
-                  }}
-                  style={styles.modalButton}
-                  labelStyle={{ color: theme.text.primary }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  mode="contained"
-                  onPress={handleCreateGroup}
-                  style={[styles.modalButton]}
-                  loading={isCreating}
-                  disabled={!newGroupName.trim() || isCreating}
-                >
-                  Create Group
-                </Button>
+                <View style={styles.modalActions}>
+                  <Button
+                    mode="text"
+                    onPress={() => {
+                      setIsModalVisible(false)
+                      setNewGroupName('')
+                    }}
+                    style={styles.modalButton}
+                    labelStyle={{ color: theme.text.primary }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    mode="contained"
+                    onPress={handleCreateGroup}
+                    style={[styles.modalButton]}
+                    loading={isCreating}
+                    disabled={!newGroupName.trim() || isCreating}
+                  >
+                    Create Group
+                  </Button>
+                </View>
               </View>
-            </View>
-          </Modal>
-        </Portal>
+            </Modal>
+          </Portal>
 
-        <Portal>
-          <Modal
-            visible={joinDialogVisible}
-            onDismiss={() => {
-              setJoinDialogVisible(false)
-              setJoinCode('')
-            }}
-            contentContainerStyle={[
-              styles.modalContainer,
-              { backgroundColor: theme.background }
-            ]}
-          >
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text 
-                  style={[styles.modalTitle, { color: theme.text.primary }]}
-                >
-                  Join Group
-                </Text>
-                <IconButton
-                  icon="close"
-                  size={24}
-                  onPress={() => {
-                    setJoinDialogVisible(false)
-                    setJoinCode('')
-                  }}
-                  iconColor={theme.text.primary}
+          <Portal>
+            <Modal
+              visible={joinDialogVisible}
+              onDismiss={() => {
+                setJoinDialogVisible(false)
+                setJoinCode('')
+              }}
+              contentContainerStyle={[
+                styles.modalContainer,
+                { backgroundColor: theme.background }
+              ]}
+            >
+              <View style={styles.modalContent}>
+                <View style={styles.modalHeader}>
+                  <Text 
+                    style={[styles.modalTitle, { color: theme.text.primary }]}
+                  >
+                    Join Group
+                  </Text>
+                  <IconButton
+                    icon="close"
+                    size={24}
+                    onPress={() => {
+                      setJoinDialogVisible(false)
+                      setJoinCode('')
+                    }}
+                    iconColor={theme.text.primary}
+                  />
+                </View>
+                
+                <TextInput
+                  mode="outlined"
+                  placeholder="Enter group code..."
+                  value={joinCode}
+                  onChangeText={setJoinCode}
+                  style={styles.modalInput}
+                  outlineColor="transparent"
+                  activeOutlineColor={theme.primary}
+                  textColor={theme.text.primary}
+                  onSubmitEditing={handleJoinGroup}
                 />
-              </View>
-              
-              <TextInput
-                mode="outlined"
-                placeholder="Enter group code..."
-                value={joinCode}
-                onChangeText={setJoinCode}
-                style={styles.modalInput}
-                outlineColor="transparent"
-                activeOutlineColor={theme.primary}
-                textColor={theme.text.primary}
-                onSubmitEditing={handleJoinGroup}
-              />
 
-              <View style={styles.modalActions}>
-                <Button
-                  mode="text"
-                  onPress={() => {
-                    setJoinDialogVisible(false)
-                    setJoinCode('')
-                  }}
-                  style={styles.modalButton}
-                  labelStyle={{ color: theme.text.primary }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  mode="contained"
-                  onPress={handleJoinGroup}
-                  style={[styles.modalButton]}
-                  loading={isJoining}
-                  disabled={!joinCode.trim() || isJoining}
-                >
-                  Join Group
-                </Button>
+                <View style={styles.modalActions}>
+                  <Button
+                    mode="text"
+                    onPress={() => {
+                      setJoinDialogVisible(false)
+                      setJoinCode('')
+                    }}
+                    style={styles.modalButton}
+                    labelStyle={{ color: theme.text.primary }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    mode="contained"
+                    onPress={handleJoinGroup}
+                    style={[styles.modalButton]}
+                    loading={isJoining}
+                    disabled={!joinCode.trim() || isJoining}
+                  >
+                    Join Group
+                  </Button>
+                </View>
               </View>
-            </View>
-          </Modal>
-        </Portal>
+            </Modal>
+          </Portal>
+        </View>
       </View>
     </SafeAreaView>
   )
@@ -465,5 +467,14 @@ const styles = StyleSheet.create({
   },
   groupCardContainer: {
     marginVertical: 1,
+  },
+  webContainer: {
+    flex: 1,
+    alignItems: 'center',
+    width: '100%',
+  },
+  contentConstraint: {
+    maxWidth: 800,
+    width: '100%',
   },
 }) 

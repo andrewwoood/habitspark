@@ -305,125 +305,127 @@ export const GroupDetailsScreen = ({ route, navigation }: NavigationProps<'Group
 
   return (
     <ErrorBoundary>
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <View style={styles.headerContainer}>
-          <View style={styles.headerTop}>
-            <IconButton
-              icon="arrow-left"
-              size={24}
-              onPress={() => navigation.goBack()}
-              iconColor={theme.text.primary}
-              style={styles.backButton}
-            />
-            <Text style={[styles.headerTitle, { color: theme.text.primary }]}>
-              Group Details
-            </Text>
-          </View>
-          
-          <Surface style={[styles.headerCard, { backgroundColor: theme.surface }]}>
-            <Text variant="headlineMedium" style={[styles.groupName, { color: theme.text.primary }]}>
-              {group.name}
-            </Text>
-            <View style={styles.codeContainer}>
-              <Text style={[styles.codeLabel, { color: theme.text.secondary }]}>
-                Group Code:
+      <View style={[styles.webContainer, { backgroundColor: theme.background }]}>
+        <View style={[styles.container, styles.contentConstraint]}>
+          <View style={styles.headerContainer}>
+            <View style={styles.headerTop}>
+              <IconButton
+                icon="arrow-left"
+                size={24}
+                onPress={() => navigation.goBack()}
+                iconColor={theme.text.primary}
+                style={styles.backButton}
+              />
+              <Text style={[styles.headerTitle, { color: theme.text.primary }]}>
+                Group Details
               </Text>
-              <View style={styles.codeBox}>
-                <Text style={[styles.codeText, { color: theme.text.primary }]}>
-                  {group.code}
-                </Text>
-              </View>
             </View>
-          </Surface>
-        </View>
-
-        <ScrollView 
-          style={[styles.scrollView, { backgroundColor: theme.background }]}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              tintColor={theme.primary}
-              colors={[theme.primary]}
-            />
-          }
-        >
-          {error ? (
-            <ErrorState 
-              message={error} 
-              onRetry={handleRefresh}
-            />
-          ) : (
-            <>
-              <Surface style={[styles.heatmapCard, { backgroundColor: theme.surface }]}>
-                <View style={styles.heatmapHeader}>
-                  <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>
-                    Group Progress
-                  </Text>
-                  <SegmentedButtons
-                    value={timeframe}
-                    onValueChange={setTimeframe}
-                    buttons={[
-                      { value: '1m', label: '1M' },
-                      { value: '3m', label: '3M' },
-                      { value: '6m', label: '6M' },
-                    ]}
-                    style={styles.segmentedButtons}
-                    theme={{
-                      colors: {
-                        primary: theme.primary,
-                        secondaryContainer: '#FFE4B5',
-                        onSecondaryContainer: theme.text.primary,
-                        onSurface: theme.text.secondary,
-                        outline: 'transparent',
-                        surface: '#FFF3E0',
-                      },
-                      roundness: 20,
-                    }}
-                    density="medium"
-                  />
-                </View>
-                <Text style={[styles.dateRange, { color: theme.text.secondary }]}>
-                  {getTimeframeLabel(timeframe)}
+            
+            <Surface style={[styles.headerCard, { backgroundColor: theme.surface }]}>
+              <Text variant="headlineMedium" style={[styles.groupName, { color: theme.text.primary }]}>
+                {group.name}
+              </Text>
+              <View style={styles.codeContainer}>
+                <Text style={[styles.codeLabel, { color: theme.text.secondary }]}>
+                  Group Code:
                 </Text>
-                <HeatmapView 
-                  dailyCompletions={transformGroupStatsToHeatmapData(groupStats[groupId] || [])}
-                  timeframe={timeframe}
-                  theme={theme}
-                  isDark={isDark}
+                <View style={styles.codeBox}>
+                  <Text style={[styles.codeText, { color: theme.text.primary }]}>
+                    {group.code}
+                  </Text>
+                </View>
+              </View>
+            </Surface>
+          </View>
+
+          <ScrollView 
+            style={[styles.scrollView, { backgroundColor: theme.background }]}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                tintColor={theme.primary}
+                colors={[theme.primary]}
+              />
+            }
+          >
+            {error ? (
+              <ErrorState 
+                message={error} 
+                onRetry={handleRefresh}
+              />
+            ) : (
+              <>
+                <Surface style={[styles.heatmapCard, { backgroundColor: theme.surface }]}>
+                  <View style={styles.heatmapHeader}>
+                    <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>
+                      Group Progress
+                    </Text>
+                    <SegmentedButtons
+                      value={timeframe}
+                      onValueChange={setTimeframe}
+                      buttons={[
+                        { value: '1m', label: '1M' },
+                        { value: '3m', label: '3M' },
+                        { value: '6m', label: '6M' },
+                      ]}
+                      style={styles.segmentedButtons}
+                      theme={{
+                        colors: {
+                          primary: theme.primary,
+                          secondaryContainer: '#FFE4B5',
+                          onSecondaryContainer: theme.text.primary,
+                          onSurface: theme.text.secondary,
+                          outline: 'transparent',
+                          surface: '#FFF3E0',
+                        },
+                        roundness: 20,
+                      }}
+                      density="medium"
+                    />
+                  </View>
+                  <Text style={[styles.dateRange, { color: theme.text.secondary }]}>
+                    {getTimeframeLabel(timeframe)}
+                  </Text>
+                  <HeatmapView 
+                    dailyCompletions={transformGroupStatsToHeatmapData(groupStats[groupId] || [])}
+                    timeframe={timeframe}
+                    theme={theme}
+                    isDark={isDark}
+                  />
+                </Surface>
+
+                <GroupMembers
+                  members={group.members}
+                  memberProfiles={memberProfiles}
+                  isGroupCreator={isGroupCreator}
+                  currentUserId={user?.id}
+                  onKickMember={handleKickMember}
+                  kickingMemberId={kickingMemberId}
+                  loadingProfiles={loadingProfiles}
                 />
-              </Surface>
 
-              <GroupMembers
-                members={group.members}
-                memberProfiles={memberProfiles}
-                isGroupCreator={isGroupCreator}
-                currentUserId={user?.id}
-                onKickMember={handleKickMember}
-                kickingMemberId={kickingMemberId}
-                loadingProfiles={loadingProfiles}
-              />
+                <GroupActions
+                  isGroupCreator={isGroupCreator}
+                  onCopyInvite={handleCopyInviteLink}
+                  onLeave={handleLeave}
+                  onDelete={handleDeleteGroup}
+                  isCopying={isCopying}
+                  isLeaving={isLeaving}
+                  isDeleting={isDeleting}
+                />
+              </>
+            )}
+          </ScrollView>
 
-              <GroupActions
-                isGroupCreator={isGroupCreator}
-                onCopyInvite={handleCopyInviteLink}
-                onLeave={handleLeave}
-                onDelete={handleDeleteGroup}
-                isCopying={isCopying}
-                isLeaving={isLeaving}
-                isDeleting={isDeleting}
-              />
-            </>
-          )}
-        </ScrollView>
-
-        <Snackbar
-          visible={showCopiedMessage}
-          onDismiss={() => setShowCopiedMessage(false)}
-          duration={2000}
-        >
-          Invite link copied to clipboard!
-        </Snackbar>
+          <Snackbar
+            visible={showCopiedMessage}
+            onDismiss={() => setShowCopiedMessage(false)}
+            duration={2000}
+          >
+            Invite link copied to clipboard!
+          </Snackbar>
+        </View>
       </View>
     </ErrorBoundary>
   )
@@ -531,5 +533,14 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     marginLeft: 8,
+  },
+  webContainer: {
+    flex: 1,
+    alignItems: 'center',
+    width: '100%',
+  },
+  contentConstraint: {
+    maxWidth: 800,
+    width: '100%',
   },
 }) 

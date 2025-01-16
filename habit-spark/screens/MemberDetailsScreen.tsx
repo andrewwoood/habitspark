@@ -109,170 +109,172 @@ export const MemberDetailsScreen = ({ navigation, route }: MemberDetailsScreenPr
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <View style={styles.header}>
-        <IconButton
-          icon="arrow-left"
-          size={24}
-          onPress={() => navigation.goBack()}
-          iconColor={theme.text.primary}
-        />
-        <Text style={[styles.headerTitle, { color: theme.text.primary }]}>
-          Member Profile
-        </Text>
-      </View>
-
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <Card style={[styles.card, { backgroundColor: theme.surface }]}>
-          <Card.Content style={styles.cardContent}>
-            <Avatar.Image 
-              size={100} 
-              source={{ uri: avatarUrl || `https://api.dicebear.com/7.x/bottts/svg?seed=${memberId}` }} 
-            />
-            <Text 
-              variant="headlineMedium" 
-              style={[styles.displayName, { color: theme.text.primary }]}
-            >
-              {displayName}
-            </Text>
-          </Card.Content>
-        </Card>
-
-        <View style={styles.statsGrid}>
-          <Card style={[styles.statsCard, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.statsValue, { color: theme.text.primary }]}>
-              {formatPercentage(statistics.weeklyAverage)}
-            </Text>
-            <Text style={[styles.statsLabel, { color: theme.text.secondary }]}>
-              Last 7 Days
-            </Text>
-          </Card>
-
-          <Card style={[styles.statsCard, { backgroundColor: theme.surface }]}>
-            <View style={styles.streakValue}>
-              <Text style={[styles.statsValue, { color: theme.text.primary }]}>
-                {calculateStreak(
-                  statistics.dailyCompletions
-                    .filter(day => day.percentage > 0)
-                    .map(day => day.date)
-                )}
-              </Text>
-              <MaterialCommunityIcons 
-                name="fire" 
-                size={24} 
-                color={theme.accent}
-                style={styles.fireIcon} 
-              />
-            </View>
-            <Text style={[styles.statsLabel, { color: theme.text.secondary }]}>
-              Current Streak
-            </Text>
-          </Card>
+    <View style={[styles.webContainer, { backgroundColor: theme.background }]}>
+      <View style={[styles.container, styles.contentConstraint]}>
+        <View style={styles.header}>
+          <IconButton
+            icon="arrow-left"
+            size={24}
+            onPress={() => navigation.goBack()}
+            iconColor={theme.text.primary}
+          />
+          <Text style={[styles.headerTitle, { color: theme.text.primary }]}>
+            Member Profile
+          </Text>
         </View>
 
-        <Card style={[styles.card, { backgroundColor: theme.surface }]}>
-          <Card.Content>
-            <View style={styles.heatmapHeader}>
-              <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>
-                Progress
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <Card style={[styles.card, { backgroundColor: theme.surface }]}>
+            <Card.Content style={styles.cardContent}>
+              <Avatar.Image 
+                size={100} 
+                source={{ uri: avatarUrl || `https://api.dicebear.com/7.x/bottts/svg?seed=${memberId}` }} 
+              />
+              <Text 
+                variant="headlineMedium" 
+                style={[styles.displayName, { color: theme.text.primary }]}
+              >
+                {displayName}
               </Text>
-              <SegmentedButtons
-                value={timeframe}
-                onValueChange={setTimeframe}
-                buttons={[
-                  { value: '1m', label: '1M' },
-                  { value: '3m', label: '3M' },
-                  { value: '6m', label: '6M' },
-                ]}
-                style={styles.segmentedButtons}
-                theme={{
-                  colors: {
-                    primary: theme.primary,
-                    secondaryContainer: '#FFE4B5',
-                    onSecondaryContainer: theme.text.primary,
-                    onSurface: theme.text.secondary,
-                    outline: 'transparent',
-                    surface: '#FFF3E0',
-                  },
-                  roundness: 20,
-                }}
-                density="medium"
-              />
-            </View>
-            <Text style={[styles.dateRange, { color: theme.text.secondary }]}>
-              {getTimeframeLabel(timeframe)}
-            </Text>
-            
-            {memberHabits.length === 0 ? (
-              <View style={styles.emptyState}>
-                <Text style={[styles.emptyText, { color: theme.text.secondary }]}>
-                  No habits to display
-                </Text>
-              </View>
-            ) : (
-              <HeatmapView 
-                dailyCompletions={statistics.dailyCompletions}
-                timeframe={timeframe}
-                theme={theme}
-                isDark={false}
-              />
-            )}
-          </Card.Content>
-        </Card>
+            </Card.Content>
+          </Card>
 
-        <Card style={[styles.card, { backgroundColor: theme.surface }]}>
-          <Card.Title 
-            title="Habits" 
-            titleStyle={[styles.cardTitle, { color: theme.text.primary }]}
-          />
-          <Card.Content>
-            {memberHabits.length === 0 ? (
-              <View style={styles.emptyState}>
-                <Text style={[styles.emptyText, { color: theme.text.secondary }]}>
-                  No habits yet
-                </Text>
-              </View>
-            ) : (
-              memberHabits.map(habit => {
-                const isCompletedToday = habit.completed_dates?.includes(today)
+          <View style={styles.statsGrid}>
+            <Card style={[styles.statsCard, { backgroundColor: theme.surface }]}>
+              <Text style={[styles.statsValue, { color: theme.text.primary }]}>
+                {formatPercentage(statistics.weeklyAverage)}
+              </Text>
+              <Text style={[styles.statsLabel, { color: theme.text.secondary }]}>
+                Last 7 Days
+              </Text>
+            </Card>
 
-                return (
-                  <Surface 
-                    key={habit.id} 
-                    style={[styles.habitItem, { backgroundColor: theme.surface }]}
-                  >
-                    <View style={styles.habitItemContent}>
-                      <View style={[
-                        styles.checkbox,
-                        { borderColor: theme.primary },
-                        isCompletedToday && { 
-                          backgroundColor: theme.primary,
-                          borderColor: theme.primary 
-                        }
-                      ]}>
-                        {isCompletedToday && (
-                          <MaterialCommunityIcons 
-                            name="check" 
-                            size={16} 
-                            color={theme.surface} 
-                          />
-                        )}
+            <Card style={[styles.statsCard, { backgroundColor: theme.surface }]}>
+              <View style={styles.streakValue}>
+                <Text style={[styles.statsValue, { color: theme.text.primary }]}>
+                  {calculateStreak(
+                    statistics.dailyCompletions
+                      .filter(day => day.percentage > 0)
+                      .map(day => day.date)
+                  )}
+                </Text>
+                <MaterialCommunityIcons 
+                  name="fire" 
+                  size={24} 
+                  color={theme.accent}
+                  style={styles.fireIcon} 
+                />
+              </View>
+              <Text style={[styles.statsLabel, { color: theme.text.secondary }]}>
+                Current Streak
+              </Text>
+            </Card>
+          </View>
+
+          <Card style={[styles.card, { backgroundColor: theme.surface }]}>
+            <Card.Content>
+              <View style={styles.heatmapHeader}>
+                <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>
+                  Progress
+                </Text>
+                <SegmentedButtons
+                  value={timeframe}
+                  onValueChange={setTimeframe}
+                  buttons={[
+                    { value: '1m', label: '1M' },
+                    { value: '3m', label: '3M' },
+                    { value: '6m', label: '6M' },
+                  ]}
+                  style={styles.segmentedButtons}
+                  theme={{
+                    colors: {
+                      primary: theme.primary,
+                      secondaryContainer: '#FFE4B5',
+                      onSecondaryContainer: theme.text.primary,
+                      onSurface: theme.text.secondary,
+                      outline: 'transparent',
+                      surface: '#FFF3E0',
+                    },
+                    roundness: 20,
+                  }}
+                  density="medium"
+                />
+              </View>
+              <Text style={[styles.dateRange, { color: theme.text.secondary }]}>
+                {getTimeframeLabel(timeframe)}
+              </Text>
+              
+              {memberHabits.length === 0 ? (
+                <View style={styles.emptyState}>
+                  <Text style={[styles.emptyText, { color: theme.text.secondary }]}>
+                    No habits to display
+                  </Text>
+                </View>
+              ) : (
+                <HeatmapView 
+                  dailyCompletions={statistics.dailyCompletions}
+                  timeframe={timeframe}
+                  theme={theme}
+                  isDark={false}
+                />
+              )}
+            </Card.Content>
+          </Card>
+
+          <Card style={[styles.card, { backgroundColor: theme.surface }]}>
+            <Card.Title 
+              title="Habits" 
+              titleStyle={[styles.cardTitle, { color: theme.text.primary }]}
+            />
+            <Card.Content>
+              {memberHabits.length === 0 ? (
+                <View style={styles.emptyState}>
+                  <Text style={[styles.emptyText, { color: theme.text.secondary }]}>
+                    No habits yet
+                  </Text>
+                </View>
+              ) : (
+                memberHabits.map(habit => {
+                  const isCompletedToday = habit.completed_dates?.includes(today)
+
+                  return (
+                    <Surface 
+                      key={habit.id} 
+                      style={[styles.habitItem, { backgroundColor: theme.surface }]}
+                    >
+                      <View style={styles.habitItemContent}>
+                        <View style={[
+                          styles.checkbox,
+                          { borderColor: theme.primary },
+                          isCompletedToday && { 
+                            backgroundColor: theme.primary,
+                            borderColor: theme.primary 
+                          }
+                        ]}>
+                          {isCompletedToday && (
+                            <MaterialCommunityIcons 
+                              name="check" 
+                              size={16} 
+                              color={theme.surface} 
+                            />
+                          )}
+                        </View>
+                        <Text style={[styles.habitName, { color: theme.text.primary }]}>
+                          {habit.name}
+                        </Text>
                       </View>
-                      <Text style={[styles.habitName, { color: theme.text.primary }]}>
-                        {habit.name}
-                      </Text>
-                    </View>
-                  </Surface>
-                )
-              })
-            )}
-          </Card.Content>
-        </Card>
-      </ScrollView>
+                    </Surface>
+                  )
+                })
+              )}
+            </Card.Content>
+          </Card>
+        </ScrollView>
+      </View>
     </View>
   )
 }
@@ -280,6 +282,7 @@ export const MemberDetailsScreen = ({ navigation, route }: MemberDetailsScreenPr
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 16,
   },
   centered: {
     flex: 1,
@@ -419,5 +422,14 @@ const styles = StyleSheet.create({
   },
   fireIcon: {
     marginLeft: 4,
+  },
+  webContainer: {
+    flex: 1,
+    alignItems: 'center',
+    width: '100%',
+  },
+  contentConstraint: {
+    maxWidth: 800,
+    width: '100%',
   },
 }) 

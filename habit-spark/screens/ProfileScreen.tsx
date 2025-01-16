@@ -111,147 +111,144 @@ export const ProfileScreen = ({ navigation }: NavigationProps) => {
   }
 
   return (
-    <View style={[
-      styles.container,
-      {
-        backgroundColor: theme.background,
-      }
-    ]}>
-      <Card style={[styles.card, { backgroundColor: theme.surface }]}>
-        <Card.Content style={styles.cardContent}>
-          <View style={styles.avatarContainer}>
-            <AvatarUpload 
-              size={100} 
-              onUpload={handleAvatarUpload} 
-              currentUrl={avatarUrl || `https://api.dicebear.com/7.x/bottts/svg?seed=${user?.id}`} 
-            />
-          </View>
-          <Text 
-            variant="headlineMedium" 
-            style={[styles.displayName, { color: theme.text.primary }]}
-          >
-            <View style={styles.displayNameContainer}>
-              <TouchableOpacity 
-                onPress={() => {
-                  setNewDisplayName(displayName || '')
-                  setIsEditNameModalVisible(true)
-                }}
-                style={styles.displayNameButton}
-              >
-                <Text 
-                  variant="headlineMedium" 
-                  style={[styles.displayName, { color: theme.text.primary }]}
-                >
-                  {displayName || 'Set Display Name'}
-                </Text>
-                <IconButton
-                  icon="pencil"
-                  size={20}
-                  iconColor={theme.text.primary}
-                  style={styles.editIcon}
-                />
-              </TouchableOpacity>
-            </View>
-          </Text>
-          <Text 
-            variant="bodyMedium" 
-            style={[styles.email, { color: theme.text.secondary }]}
-          >
-            {user?.email}
-          </Text>
-        </Card.Content>
-      </Card>
-      <Card style={[styles.achievementsCard, { backgroundColor: theme.surface }]}>
-        <Card.Title 
-          title="Achievements" 
-          left={(props) => (
-            <Avatar.Icon 
-              {...props} 
-              icon="trophy" 
-              color={theme.primary}
-              style={{ backgroundColor: 'transparent' }}
-            />
-          )}
-          titleStyle={[styles.cardTitle, { color: theme.text.primary }]}
-        />
-        <Card.Content>
-          <AchievementsList
-            currentStreak={currentStreak}
-            achievements={achievements}
-          />
-        </Card.Content>
-      </Card>
-      <Button 
-        mode="contained"
-        onPress={logout} 
-        style={[
-          styles.button,
-          { 
-            backgroundColor: '#DC3545',  // Same as delete button
-            marginTop: 'auto',
-            marginBottom: 16,
-          }
-        ]}
-        labelStyle={{ color: 'white' }}
-      >
-        Sign Out
-      </Button>
-      <Portal>
-        <Modal
-          visible={isEditNameModalVisible}
-          onDismiss={() => setIsEditNameModalVisible(false)}
-          contentContainerStyle={[
-            styles.modalContainer,
-            { backgroundColor: theme.background }
-          ]}
-        >
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text 
-                style={[styles.modalTitle, { color: theme.text.primary }]}
-              >
-                Change Your Display Name
-              </Text>
-              <IconButton
-                icon="close"
-                size={24}
-                onPress={() => setIsEditNameModalVisible(false)}
-                iconColor={theme.text.primary}
+    <View style={[styles.webContainer, { backgroundColor: theme.background }]}>
+      <View style={[styles.container, styles.contentConstraint]}>
+        <Card style={[styles.card, { backgroundColor: theme.surface }]}>
+          <Card.Content style={styles.cardContent}>
+            <View style={styles.avatarContainer}>
+              <AvatarUpload 
+                size={100} 
+                onUpload={handleAvatarUpload} 
+                currentUrl={avatarUrl || `https://api.dicebear.com/7.x/bottts/svg?seed=${user?.id}`} 
               />
             </View>
-            
-            <PaperTextInput
-              mode="outlined"
-              placeholder="Enter display name..."
-              value={newDisplayName}
-              onChangeText={setNewDisplayName}
-              style={styles.modalInput}
-              outlineColor="transparent"
-              activeOutlineColor={theme.primary}
-              textColor={theme.text.primary}
+            <Text 
+              variant="headlineMedium" 
+              style={[styles.displayName, { color: theme.text.primary }]}
+            >
+              <View style={styles.displayNameContainer}>
+                <TouchableOpacity 
+                  onPress={() => {
+                    setNewDisplayName(displayName || '')
+                    setIsEditNameModalVisible(true)
+                  }}
+                  style={styles.displayNameButton}
+                >
+                  <Text 
+                    variant="headlineMedium" 
+                    style={[styles.displayName, { color: theme.text.primary }]}
+                  >
+                    {displayName || 'Set Display Name'}
+                  </Text>
+                  <IconButton
+                    icon="pencil"
+                    size={20}
+                    iconColor={theme.text.primary}
+                    style={styles.editIcon}
+                  />
+                </TouchableOpacity>
+              </View>
+            </Text>
+            <Text 
+              variant="bodyMedium" 
+              style={[styles.email, { color: theme.text.secondary }]}
+            >
+              {user?.email}
+            </Text>
+          </Card.Content>
+        </Card>
+        <Card style={[styles.achievementsCard, { backgroundColor: theme.surface }]}>
+          <Card.Title 
+            title="Achievements" 
+            left={(props) => (
+              <Avatar.Icon 
+                {...props} 
+                icon="trophy" 
+                color={theme.primary}
+                style={{ backgroundColor: 'transparent' }}
+              />
+            )}
+            titleStyle={[styles.cardTitle, { color: theme.text.primary }]}
+          />
+          <Card.Content>
+            <AchievementsList
+              currentStreak={currentStreak}
+              achievements={achievements}
             />
+          </Card.Content>
+        </Card>
+        <Button 
+          mode="contained"
+          onPress={logout} 
+          style={[
+            styles.button,
+            { 
+              backgroundColor: '#DC3545',  // Same as delete button
+              marginTop: 'auto',
+              marginBottom: 16,
+            }
+          ]}
+          labelStyle={{ color: 'white' }}
+        >
+          Sign Out
+        </Button>
+        <Portal>
+          <Modal
+            visible={isEditNameModalVisible}
+            onDismiss={() => setIsEditNameModalVisible(false)}
+            contentContainerStyle={[
+              styles.modalContainer,
+              { backgroundColor: theme.background }
+            ]}
+          >
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text 
+                  style={[styles.modalTitle, { color: theme.text.primary }]}
+                >
+                  Change Your Display Name
+                </Text>
+                <IconButton
+                  icon="close"
+                  size={24}
+                  onPress={() => setIsEditNameModalVisible(false)}
+                  iconColor={theme.text.primary}
+                />
+              </View>
+              
+              <PaperTextInput
+                mode="outlined"
+                placeholder="Enter display name..."
+                value={newDisplayName}
+                onChangeText={setNewDisplayName}
+                style={styles.modalInput}
+                outlineColor="transparent"
+                activeOutlineColor={theme.primary}
+                textColor={theme.text.primary}
+              />
 
-            <View style={styles.modalActions}>
-              <Button
-                mode="text"
-                onPress={() => setIsEditNameModalVisible(false)}
-                style={styles.modalButton}
-                labelStyle={{ color: theme.text.primary }}
-              >
-                Cancel
-              </Button>
-              <Button
-                mode="contained"
-                onPress={handleUpdateName}
-                style={[styles.modalButton, { backgroundColor: '#F4A460' }]}
-                labelStyle={{ color: 'white' }}
-              >
-                Save
-              </Button>
+              <View style={styles.modalActions}>
+                <Button
+                  mode="text"
+                  onPress={() => setIsEditNameModalVisible(false)}
+                  style={styles.modalButton}
+                  labelStyle={{ color: theme.text.primary }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  mode="contained"
+                  onPress={handleUpdateName}
+                  style={[styles.modalButton, { backgroundColor: '#F4A460' }]}
+                  labelStyle={{ color: 'white' }}
+                >
+                  Save
+                </Button>
+              </View>
             </View>
-          </View>
-        </Modal>
-      </Portal>
+          </Modal>
+        </Portal>
+      </View>
     </View>
   )
 }
@@ -386,5 +383,14 @@ const styles = StyleSheet.create({
   modalButton: {
     borderRadius: 20,
     minWidth: 100,
+  },
+  webContainer: {
+    flex: 1,
+    alignItems: 'center',
+    width: '100%',
+  },
+  contentConstraint: {
+    maxWidth: 800,
+    width: '100%',
   },
 }) 

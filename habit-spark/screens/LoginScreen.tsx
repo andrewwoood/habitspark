@@ -59,121 +59,123 @@ export const LoginScreen = ({ navigation }: NavigationProps) => {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      <View style={styles.container}>
-        {/* Logo and Title Section */}
-        <View style={styles.headerSection}>
-          <View style={styles.logoContainer}>
-            <MaterialCommunityIcons 
-              name="fire" 
-              size={48} 
-              color={theme.accent} 
-            />
-            <MaterialCommunityIcons 
-              name="star-four-points" 
-              size={16} 
-              color={theme.accent}
-              style={styles.sparkle} 
-            />
-          </View>
-          <Text 
-            variant="headlineMedium" 
-            style={[styles.title, { color: theme.text.primary }]}
-          >
-            Welcome to HabitSpark
-          </Text>
-          <Text 
-            variant="bodyLarge" 
-            style={[styles.subtitle, { color: theme.text.secondary }]}
-          >
-            Track habits, achieve your goals, and spark positive change with your friends
-          </Text>
-        </View>
-
-        {/* Form Section - now wrapped in a white surface */}
-        <View style={[styles.formCard, { backgroundColor: theme.surface }]}>
-          <View style={styles.formSection}>
-            <TextInput
-              label="Email"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              style={styles.input}
-              mode="outlined"
-              outlineColor={theme.primary}
-              activeOutlineColor={theme.primary}
-              textColor={theme.text.primary}
-              theme={{
-                colors: {
-                  background: theme.surface,
-                  onSurfaceVariant: '#666666', // Grey text for label
-                },
-              }}
-            />
-            <TextInput
-              label="Password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              style={styles.input}
-              mode="outlined"
-              outlineColor={theme.primary}
-              activeOutlineColor={theme.primary}
-              textColor={theme.text.primary}
-              theme={{
-                colors: {
-                  background: theme.surface,
-                  onSurfaceVariant: '#666666', // Grey text for label
-                },
-              }}
-            />
-            <Button 
-              mode="contained" 
-              onPress={handleLogin}
-              loading={loading}
-              style={styles.loginButton}
-              buttonColor={theme.primary}
-              textColor="white"
-              labelStyle={styles.buttonLabel}
-            >
-              Login
-            </Button>
-
-            <View style={styles.divider}>
-              <View style={[styles.dividerLine, { backgroundColor: theme.primary }]} />
-              <Text style={[styles.dividerText, { color: theme.text.secondary }]}>or</Text>
-              <View style={[styles.dividerLine, { backgroundColor: theme.primary }]} />
+      <View style={styles.webContainer}>
+        <View style={[styles.container, styles.contentConstraint]}>
+          {/* Logo and Title Section */}
+          <View style={styles.headerSection}>
+            <View style={styles.logoContainer}>
+              <MaterialCommunityIcons 
+                name="fire" 
+                size={48} 
+                color={theme.accent} 
+              />
+              <MaterialCommunityIcons 
+                name="star-four-points" 
+                size={16} 
+                color={theme.accent}
+                style={styles.sparkle} 
+              />
             </View>
-
-            <Button 
-              mode="outlined"
-              onPress={handleGoogleSignIn}
-              disabled={!request || loading}
-              style={styles.googleButton}
-              textColor="#757575" // Google's text color
-              labelStyle={styles.buttonLabel}
-              icon={({ size }) => (
-                <View style={styles.googleIconContainer}>
-                  <MaterialCommunityIcons 
-                    name="google" 
-                    size={size} 
-                    color={theme.primary}
-                    style={styles.googleIcon}
-                  />
-                </View>
-              )}
+            <Text 
+              variant="headlineMedium" 
+              style={[styles.title, { color: theme.text.primary }]}
             >
-              Sign in with Google
-            </Button>
-
-            <Button 
-              mode="text" 
-              onPress={() => navigation.navigate('SignUp')}
-              style={styles.signUpButton}
-              textColor={theme.primary}
-              labelStyle={styles.linkLabel}
+              Welcome to HabitSpark
+            </Text>
+            <Text 
+              variant="bodyLarge" 
+              style={[styles.subtitle, { color: theme.text.secondary }]}
             >
-              Don't have an account? Sign Up
-            </Button>
+              Track habits, achieve your goals, and spark positive change with your friends
+            </Text>
+          </View>
+
+          {/* Form Section - now wrapped in a white surface */}
+          <View style={[styles.formCard, { backgroundColor: theme.surface }]}>
+            <View style={styles.formSection}>
+              <TextInput
+                label="Email"
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                style={styles.input}
+                mode="outlined"
+                outlineColor={theme.primary}
+                activeOutlineColor={theme.primary}
+                textColor={theme.text.primary}
+                theme={{
+                  colors: {
+                    background: theme.surface,
+                    onSurfaceVariant: '#666666', // Grey text for label
+                  },
+                }}
+              />
+              <TextInput
+                label="Password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                style={styles.input}
+                mode="outlined"
+                outlineColor={theme.primary}
+                activeOutlineColor={theme.primary}
+                textColor={theme.text.primary}
+                theme={{
+                  colors: {
+                    background: theme.surface,
+                    onSurfaceVariant: '#666666', // Grey text for label
+                  },
+                }}
+              />
+              <Button 
+                mode="contained" 
+                onPress={handleLogin}
+                loading={loading}
+                style={styles.loginButton}
+                buttonColor={theme.primary}
+                textColor="white"
+                labelStyle={styles.buttonLabel}
+              >
+                Login
+              </Button>
+
+              <View style={styles.divider}>
+                <View style={[styles.dividerLine, { backgroundColor: theme.primary }]} />
+                <Text style={[styles.dividerText, { color: theme.text.secondary }]}>or</Text>
+                <View style={[styles.dividerLine, { backgroundColor: theme.primary }]} />
+              </View>
+
+              <Button 
+                mode="outlined"
+                onPress={handleGoogleSignIn}
+                disabled={!request || loading}
+                style={styles.googleButton}
+                textColor="#757575" // Google's text color
+                labelStyle={styles.buttonLabel}
+                icon={({ size }) => (
+                  <View style={styles.googleIconContainer}>
+                    <MaterialCommunityIcons 
+                      name="google" 
+                      size={size} 
+                      color={theme.primary}
+                      style={styles.googleIcon}
+                    />
+                  </View>
+                )}
+              >
+                Sign in with Google
+              </Button>
+
+              <Button 
+                mode="text" 
+                onPress={() => navigation.navigate('SignUp')}
+                style={styles.signUpButton}
+                textColor={theme.primary}
+                labelStyle={styles.linkLabel}
+              >
+                Don't have an account? Sign Up
+              </Button>
+            </View>
           </View>
         </View>
       </View>
@@ -279,5 +281,14 @@ const styles = StyleSheet.create({
   },
   signUpButton: {
     marginTop: 'auto',
+  },
+  webContainer: {
+    flex: 1,
+    alignItems: 'center',
+    width: '100%',
+  },
+  contentConstraint: {
+    maxWidth: 800,
+    width: '100%',
   },
 }) 

@@ -74,136 +74,138 @@ export const SignUpScreen = ({ navigation }: NavigationProps) => {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      <View style={styles.container}>
-        <View style={styles.headerSection}>
-          <View style={styles.logoContainer}>
-            <MaterialCommunityIcons 
-              name="fire" 
-              size={48} 
-              color={theme.accent} 
-            />
-            <MaterialCommunityIcons 
-              name="star-four-points" 
-              size={16} 
-              color={theme.accent}
-              style={styles.sparkle} 
-            />
-          </View>
-          <Text 
-            variant="headlineMedium" 
-            style={[styles.title, { color: theme.text.primary }]}
-          >
-            Join HabitSpark
-          </Text>
-          <Text 
-            variant="bodyLarge" 
-            style={[styles.subtitle, { color: theme.text.secondary }]}
-          >
-            Start your journey to better habits today
-          </Text>
-        </View>
-
-        <View style={[styles.formCard, { backgroundColor: theme.surface }]}>
-          <View style={styles.formSection}>
-            <TextInput
-              label="Email"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              style={styles.input}
-              mode="outlined"
-              outlineColor={theme.primary}
-              activeOutlineColor={theme.primary}
-              textColor={theme.text.primary}
-              theme={{
-                colors: {
-                  background: theme.surface,
-                  onSurfaceVariant: '#666666',
-                },
-              }}
-            />
-            <TextInput
-              label="Password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              style={styles.input}
-              mode="outlined"
-              outlineColor={theme.primary}
-              activeOutlineColor={theme.primary}
-              textColor={theme.text.primary}
-              theme={{
-                colors: {
-                  background: theme.surface,
-                  onSurfaceVariant: '#666666',
-                },
-              }}
-            />
-            <TextInput
-              label="Confirm Password"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry
-              style={styles.input}
-              mode="outlined"
-              outlineColor={theme.primary}
-              activeOutlineColor={theme.primary}
-              textColor={theme.text.primary}
-              theme={{
-                colors: {
-                  background: theme.surface,
-                  onSurfaceVariant: '#666666',
-                },
-              }}
-            />
-            <Button 
-              mode="contained" 
-              onPress={handleSignUp}
-              loading={loading}
-              style={styles.signUpButton}
-              buttonColor={theme.primary}
-              textColor="white"
-              labelStyle={styles.buttonLabel}
-            >
-              Sign Up
-            </Button>
-
-            <View style={styles.divider}>
-              <View style={[styles.dividerLine, { backgroundColor: theme.primary }]} />
-              <Text style={[styles.dividerText, { color: theme.text.secondary }]}>or</Text>
-              <View style={[styles.dividerLine, { backgroundColor: theme.primary }]} />
+      <View style={styles.webContainer}>
+        <View style={[styles.container, styles.contentConstraint]}>
+          <View style={styles.headerSection}>
+            <View style={styles.logoContainer}>
+              <MaterialCommunityIcons 
+                name="fire" 
+                size={48} 
+                color={theme.accent} 
+              />
+              <MaterialCommunityIcons 
+                name="star-four-points" 
+                size={16} 
+                color={theme.accent}
+                style={styles.sparkle} 
+              />
             </View>
-
-            <Button 
-              mode="outlined"
-              onPress={handleGoogleSignIn}
-              disabled={loading}
-              style={styles.googleButton}
-              textColor="#757575"
-              labelStyle={styles.buttonLabel}
-              icon={({ size }) => (
-                <View style={styles.googleIconContainer}>
-                  <MaterialCommunityIcons 
-                    name="google" 
-                    size={size} 
-                    color={theme.primary}
-                    style={styles.googleIcon}
-                  />
-                </View>
-              )}
+            <Text 
+              variant="headlineMedium" 
+              style={[styles.title, { color: theme.text.primary }]}
             >
-              Sign up with Google
-            </Button>
-
-            <Button 
-              mode="text" 
-              onPress={() => navigation.navigate('Login')}
-              style={styles.loginButton}
-              textColor={theme.primary}
-              labelStyle={styles.linkLabel}
+              Join HabitSpark
+            </Text>
+            <Text 
+              variant="bodyLarge" 
+              style={[styles.subtitle, { color: theme.text.secondary }]}
             >
-              Already have an account? Login
-            </Button>
+              Start your journey to better habits today
+            </Text>
+          </View>
+
+          <View style={[styles.formCard, { backgroundColor: theme.surface }]}>
+            <View style={styles.formSection}>
+              <TextInput
+                label="Email"
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                style={styles.input}
+                mode="outlined"
+                outlineColor={theme.primary}
+                activeOutlineColor={theme.primary}
+                textColor={theme.text.primary}
+                theme={{
+                  colors: {
+                    background: theme.surface,
+                    onSurfaceVariant: '#666666',
+                  },
+                }}
+              />
+              <TextInput
+                label="Password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                style={styles.input}
+                mode="outlined"
+                outlineColor={theme.primary}
+                activeOutlineColor={theme.primary}
+                textColor={theme.text.primary}
+                theme={{
+                  colors: {
+                    background: theme.surface,
+                    onSurfaceVariant: '#666666',
+                  },
+                }}
+              />
+              <TextInput
+                label="Confirm Password"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry
+                style={styles.input}
+                mode="outlined"
+                outlineColor={theme.primary}
+                activeOutlineColor={theme.primary}
+                textColor={theme.text.primary}
+                theme={{
+                  colors: {
+                    background: theme.surface,
+                    onSurfaceVariant: '#666666',
+                  },
+                }}
+              />
+              <Button 
+                mode="contained" 
+                onPress={handleSignUp}
+                loading={loading}
+                style={styles.signUpButton}
+                buttonColor={theme.primary}
+                textColor="white"
+                labelStyle={styles.buttonLabel}
+              >
+                Sign Up
+              </Button>
+
+              <View style={styles.divider}>
+                <View style={[styles.dividerLine, { backgroundColor: theme.primary }]} />
+                <Text style={[styles.dividerText, { color: theme.text.secondary }]}>or</Text>
+                <View style={[styles.dividerLine, { backgroundColor: theme.primary }]} />
+              </View>
+
+              <Button 
+                mode="outlined"
+                onPress={handleGoogleSignIn}
+                disabled={loading}
+                style={styles.googleButton}
+                textColor="#757575"
+                labelStyle={styles.buttonLabel}
+                icon={({ size }) => (
+                  <View style={styles.googleIconContainer}>
+                    <MaterialCommunityIcons 
+                      name="google" 
+                      size={size} 
+                      color={theme.primary}
+                      style={styles.googleIcon}
+                    />
+                  </View>
+                )}
+              >
+                Sign up with Google
+              </Button>
+
+              <Button 
+                mode="text" 
+                onPress={() => navigation.navigate('Login')}
+                style={styles.loginButton}
+                textColor={theme.primary}
+                labelStyle={styles.linkLabel}
+              >
+                Already have an account? Login
+              </Button>
+            </View>
           </View>
         </View>
       </View>
@@ -309,5 +311,14 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     marginTop: 'auto',
+  },
+  webContainer: {
+    flex: 1,
+    alignItems: 'center',
+    width: '100%',
+  },
+  contentConstraint: {
+    maxWidth: 800,
+    width: '100%',
   },
 }) 
