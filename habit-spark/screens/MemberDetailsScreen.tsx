@@ -3,8 +3,6 @@ import { View, StyleSheet, ScrollView } from 'react-native'
 import { Text, Avatar, Card, ActivityIndicator, IconButton, Surface, SegmentedButtons } from 'react-native-paper'
 import { useAppTheme } from '../theme/ThemeContext'
 import type { NavigationProps } from '../types/navigation'
-import { AchievementsList } from '../components/AchievementsList'
-import { getUnlockedAchievements } from '../utils/achievements'
 import { useMemberStore } from '../store/memberStore'
 import { HeatmapView } from '../components/HeatmapView'
 import type { Habit } from '../store/habitStore'
@@ -185,27 +183,6 @@ export const MemberDetailsScreen = ({ navigation, route }: MemberDetailsScreenPr
                 isDark={false}
               />
             )}
-          </Card.Content>
-        </Card>
-
-        <Card style={[styles.card, { backgroundColor: theme.surface }]}>
-          <Card.Title 
-            title="Achievements" 
-            left={(props) => (
-              <Avatar.Icon 
-                {...props} 
-                icon="trophy" 
-                color={theme.primary}
-                style={{ backgroundColor: 'transparent' }}
-              />
-            )}
-            titleStyle={[styles.cardTitle, { color: theme.text.primary }]}
-          />
-          <Card.Content>
-            <AchievementsList
-              currentStreak={currentStreak}
-              achievements={getUnlockedAchievements(currentStreak)}
-            />
           </Card.Content>
         </Card>
 
