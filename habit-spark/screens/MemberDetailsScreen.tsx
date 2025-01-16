@@ -7,6 +7,7 @@ import { useHabitStore, type Habit } from '../store/habitStore.tsx'
 import { HeatmapView } from '../components/HeatmapView'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { calculateStatistics } from '../utils/statisticsCalculator'
+import { calculateStreak } from '../utils/streakCalculator'
 
 interface MemberDetailsScreenProps extends NavigationProps<'MemberDetails'> {
   route: {
@@ -66,6 +67,11 @@ export const MemberDetailsScreen = ({ navigation, route }: MemberDetailsScreenPr
     new Date().toISOString().split('T')[0],
     []
   )
+
+  const formatPercentage = (value: number | undefined) => {
+    if (value === undefined || isNaN(value)) return '0%'
+    return `${Math.round(value)}%`
+  }
 
   React.useEffect(() => {
     const loadMemberDetails = async () => {
@@ -135,6 +141,34 @@ export const MemberDetailsScreen = ({ navigation, route }: MemberDetailsScreenPr
             </Text>
           </Card.Content>
         </Card>
+
+        <View style={styles.statsGrid}>
+          <Card style={[styles.statsCard, { backgroundColor: theme.surface }]}>
+            <Text style={[styles.statsValue, { color: theme.text.primary }]}>
+              {formatPercentage(statistics.weeklyAverage)}
+            </Text>
+            <Text style={[styles.statsLabel, { color: theme.text.secondary }]}>
+              Last 7 Days
+            </Text>
+          </Card>
+
+          <Card style={[styles.statsCard, { backgroundColor: theme.surface }]}>
+            <View style={styles.streakValue}>
+              <Text style={[styles.statsValue, { color: theme.text.primary }]}>
+                {calculateStreak(statistics.dailyCompletions.map(d => d.date))}
+              </Text>
+              <MaterialCommunityIcons 
+                name="fire" 
+                size={24} 
+                color={theme.accent}
+                style={styles.fireIcon} 
+              />
+            </View>
+            <Text style={[styles.statsLabel, { color: theme.text.secondary }]}>
+              Current Streak
+            </Text>
+          </Card>
+        </View>
 
         <Card style={[styles.card, { backgroundColor: theme.surface }]}>
           <Card.Content>
@@ -351,5 +385,35 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 24,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    gap: 16,
+  },
+  statsCard: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 12,
+    elevation: 2,
+  },
+  statsValue: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  statsLabel: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  streakValue: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fireIcon: {
+    marginLeft: 4,
   },
 }) 
