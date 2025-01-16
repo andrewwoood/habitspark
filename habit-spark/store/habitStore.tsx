@@ -28,6 +28,7 @@ interface HabitState {
   addHabit: (habit: { name: string, description: string, frequency: string }) => Promise<void>
   updateHabit: (habitId: string, updates: { name: string }) => Promise<void>
   deleteHabit: (habitId: string) => Promise<void>
+  fetchUserHabits: (userId: string) => Promise<Habit[]>
 }
 
 export const useHabitStore = create<HabitState>((set, get) => ({
@@ -214,4 +215,22 @@ export const useHabitStore = create<HabitState>((set, get) => ({
       set({ loading: false })
     }
   },
+  fetchUserHabits: async (userId: string) => {
+    try {
+      console.log('fetchUserHabits called with userId:', userId)
+      const { data: habits, error } = await supabase
+        .from('habits')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: true })
+
+      console.log('Fetched habits response:', { habits, error })
+
+      if (error) throw error
+      return habits || []
+    } catch (error) {
+      console.error('Error fetching user habits:', error)
+      throw error
+    }
+  }
 })) 

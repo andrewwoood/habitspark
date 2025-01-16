@@ -3,10 +3,9 @@ import { View, StyleSheet, ScrollView } from 'react-native'
 import { Text, Avatar, Card, ActivityIndicator, IconButton, Surface, SegmentedButtons } from 'react-native-paper'
 import { useAppTheme } from '../theme/ThemeContext'
 import type { NavigationProps } from '../types/navigation'
-import { useMemberStore } from '../store/memberStore'
+import { useHabitStore, type Habit } from '../store/habitStore.tsx'
 import { HeatmapView } from '../components/HeatmapView'
-import type { Habit } from '../store/habitStore'
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { calculateStatistics } from '../utils/statisticsCalculator'
 
 interface MemberDetailsScreenProps extends NavigationProps<'MemberDetails'> {
@@ -22,17 +21,10 @@ interface MemberDetailsScreenProps extends NavigationProps<'MemberDetails'> {
 export const MemberDetailsScreen = ({ navigation, route }: MemberDetailsScreenProps) => {
   const { memberId, displayName, avatarUrl } = route.params
   const { theme } = useAppTheme()
-  const { 
-    memberHabits, 
-    memberProfile,
-    currentStreak,
-    loading,
-    error,
-    fetchMemberHabits,
-    fetchMemberStreak,
-    fetchMemberProfile,
-    reset
-  } = useMemberStore()
+  const { fetchUserHabits } = useHabitStore()
+  const [memberHabits, setMemberHabits] = React.useState<Habit[]>([])
+  const [loading, setLoading] = React.useState(true)
+  const [error, setError] = React.useState<string | null>(null)
 
   const [timeframe, setTimeframe] = React.useState('3m')
 
@@ -70,25 +62,29 @@ export const MemberDetailsScreen = ({ navigation, route }: MemberDetailsScreenPr
     [memberHabits]
   )
 
+  const today = React.useMemo(() => 
+    new Date().toISOString().split('T')[0],
+    []
+  )
+
   React.useEffect(() => {
     const loadMemberDetails = async () => {
       try {
-        await Promise.all([
-          fetchMemberHabits(memberId),
-          fetchMemberStreak(memberId),
-          fetchMemberProfile(memberId)
-        ])
+        setLoading(true)
+        console.log('Loading member details for:', memberId)
+        const habits = await fetchUserHabits(memberId)
+        console.log('Received habits:', habits)
+        setMemberHabits(habits)
       } catch (err) {
         console.error('Error loading member details:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load habits')
+      } finally {
+        setLoading(false)
       }
     }
 
     loadMemberDetails()
-    
-    return () => {
-      reset()
-    }
-  }, [memberId])
+  }, [memberId, fetchUserHabits])
 
   if (loading) {
     return (
@@ -200,9 +196,7 @@ export const MemberDetailsScreen = ({ navigation, route }: MemberDetailsScreenPr
               </View>
             ) : (
               memberHabits.map(habit => {
-                const isCompletedToday = habit.completed_dates?.includes(
-                  new Date().toISOString().split('T')[0]
-                )
+                const isCompletedToday = habit.completed_dates?.includes(today)
 
                 return (
                   <Surface 
@@ -285,16 +279,18 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 8,
     elevation: 1,
+    backgroundColor: 'white',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 1,
+    marginHorizontal: 2,
   },
   heatmapHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
+    paddingBottom: 16,
   },
   sectionTitle: {
     fontSize: 18,
@@ -302,11 +298,21 @@ const styles = StyleSheet.create({
   },
   segmentedButtons: {
     marginLeft: 16,
+    borderRadius: 20,
+    minHeight: 36,
+    overflow: 'hidden',
+    backgroundColor: '#FFF3E0',
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
   },
   dateRange: {
     marginTop: 8,
     fontSize: 14,
     fontWeight: '400',
+    marginBottom: 12,
   },
   emptyState: {
     flex: 1,
@@ -320,6 +326,7 @@ const styles = StyleSheet.create({
   habitItemContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: 4,
   },
   checkbox: {
     width: 20,
@@ -327,9 +334,12 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderRadius: 4,
     marginRight: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   habitName: {
     fontSize: 16,
     fontWeight: '400',
+    flex: 1,
   },
 }) 
