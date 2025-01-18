@@ -16,11 +16,11 @@ export const googleOAuthConfig = {
   useProxy: false
 }
 
-if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+if (!process.env.EXPO_PUBLIC_SUPABASE_URL || !process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY) {
   throw new Error('Missing Supabase environment variables')
 }
 
 export const supabaseConfig = {
-  supabaseUrl: process.env.SUPABASE_URL as string,
-  supabaseAnonKey: process.env.SUPABASE_ANON_KEY as string,
+  supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL as string,
+  supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY as string,
 } 
